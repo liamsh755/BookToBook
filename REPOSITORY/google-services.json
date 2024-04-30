@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "85416729973",
+    "project_id": "book-to-book-e5c56",
+    "storage_bucket": "book-to-book-e5c56.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:85416729973:android:df330f9395b0737077073c",
+        "android_client_info": {
+          "package_name": "co.il.liam.booktobook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxGa8vc9BoLC7HNDrsgIXQQqEv44Qtb4A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

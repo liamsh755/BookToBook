@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_gradient"
+    tools:context=".ACTIVITIES.CodeActivity">
+
+    <TextView
+        android:id="@+id/tvCodeCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/montserrat_alternates_medium"
+        android:text="Cancel"
+        android:textColor="#FAFAFA"
+        android:textSize="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/btnCodeConfirm"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="@id/btnCodeConfirm"
+        app:layout_constraintTop_toBottomOf="@id/btnCodeConfirm"
+        app:layout_constraintVertical_bias="0.126" />
+
+    <Button
+        android:id="@+id/btnCodeConfirm"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:background="@drawable/button_white"
+        android:fontFamily="@font/montserrat_alternates_medium"
+        android:gravity="center"
+        android:paddingTop="3dp"
+        android:paddingBottom="7dp"
+        android:text="Confirm"
+        android:textAllCaps="false"
+        android:textColor="#222222"
+        android:textSize="26dp"
+        android:theme="@android:style/Widget.Material.Button.Borderless.Colored"
+        app:cornerRadius="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.85" />
+
+    <TextView
+        android:id="@+id/tvCodeNoCode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:fontFamily="@font/montserrat_alternates_medium"
+        android:text="I can't find my code"
+        android:textColor="#F8F8F8"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/tvCodeCancel"
+        app:layout_constraintStart_toStartOf="@+id/tvCodeCancel"
+        app:layout_constraintTop_toBottomOf="@id/btnCodeConfirm"
+        app:layout_constraintVertical_bias="0.511" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout4"
+        app:layout_constraintVertical_bias="0.193">
+
+        <TextView
+            android:id="@+id/lala"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:text="Message sent to "
+            android:textColor="#FBFBFB"
+            android:textSize="15dp" />
+
+        <TextView
+            android:id="@+id/tvCodeEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/montserrat_alternates_medium"
+            android:text="k*******6@gmail.com"
+            android:textColor="#FBFBFB"
+            android:textSize="15dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/btnCodeConfirm"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+        app:layout_constraintVertical_bias="0.404">
+
+        <EditText
+            android:id="@+id/etCode1"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_margin="3dp"
+            android:backgroundTint="#F8F8F8"
+            android:clickable="true"
+            android:ems="10"
+            android:focusable="true"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textColor="#FAFAFA"
+            android:textColorHint="#AEAEAE"
+            android:textSize="26sp" />
+
+        <EditText
+            android:id="@+id/etCode2"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_margin="3dp"
+            android:backgroundTint="#F8F8F8"
+            android:clickable="false"
+            android:ems="10"
+            android:enabled="false"
+            android:focusable="true"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:gravity="center|center_horizontal|top"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textColor="#FAFAFA"
+            android:textColorHint="#AEAEAE"
+            android:textSize="26sp" />
+
+        <EditText
+            android:id="@+id/etCode3"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginRight="9dp"
+            android:layout_marginBottom="3dp"
+            android:backgroundTint="#F8F8F8"
+            android:clickable="false"
+            android:ems="10"
+            android:enabled="false"
+            android:focusable="true"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textColor="#FAFAFA"
+            android:textColorHint="#AEAEAE"
+            android:textSize="26sp" />
+
+        <EditText
+            android:id="@+id/etCode4"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_marginLeft="9dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginRight="3dp"
+            android:layout_marginBottom="3dp"
+            android:backgroundTint="#F8F8F8"
+            android:clickable="false"
+            android:ems="10"
+            android:enabled="false"
+            android:focusable="true"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textColor="#FFFAFAFA"
+            android:textColorHint="#AEAEAE"
+            android:textSize="26sp" />
+
+        <EditText
+            android:id="@+id/etCode5"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_margin="3dp"
+            android:backgroundTint="#F8F8F8"
+            android:clickable="false"
+            android:ems="10"
+            android:enabled="false"
+            android:focusable="true"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textColor="#FFFAFAFA"
+            android:textColorHint="#AEAEAE"
+            android:textSize="26sp" />
+
+        <EditText
+            android:id="@+id/etCode6"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
+            android:layout_margin="3dp"
+            android:backgroundTint="#F8F8F8"
+            android:clickable="false"
+            android:ems="10"
+            android:enabled="false"
+            android:focusable="true"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:gravity="center"
+            android:inputType="number"
+            android:maxLength="1"
+            android:textColor="#FFFAFAFA"
+            android:textColorHint="#AEAEAE"
+            android:textSize="26sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvCodeTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:fontFamily="@font/montserrat_alternates_light"
+        android:text="05 : 00"
+        android:textColor="#FFFAFAFA"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@id/btnCodeConfirm"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
+        app:layout_constraintVertical_bias="0.958" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout4"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.085">
+
+        <TextView
+            android:id="@+id/babha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/montserrat_alternates_medium"
+            android:gravity="left"
+            android:maxLines="1"
+            android:text="Verify your email"
+            android:textColor="#FBFBFB"
+            android:textSize="26sp" />
+
+        <TextView
+            android:id="@+id/nana"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="20dp"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:text="Enter the 6-digit code we sent to your email address. \nYou have 5 minutes to complete this.\nIt may take up to a minute for you to recieve this code."
+            android:textColor="#FBFBFB"
+            android:textSize="15dp" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
