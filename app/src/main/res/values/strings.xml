@@ -5,5 +5,5 @@
     <string name="swap_desc">Swap books with other users in your area</string>
     <string name="discover_desc">Discover new books based on what you like</string>
     <string name="email_msg1">You\'re receiving this email because you requested a password reset for your account. To set a new password, insert the following verification code in the reset password page in the application.</string>
-    <string name="email_msg2">If you don\'t want to change your password or didn\'t request this, you can safely disregard this email.\nIf this issue persists feel free to contact the support team at BookToBookSupport@gmail.com or reply to this email.\n\nThank you,\nThe BookToBook team. </string>
+    <string name="email_msg2">If you don\'t want to change your password or didn\'t request this, you can safely disregard this email.\nIf this issue persists feel free to contact the support team at booktobookcs@gmail.com or reply to this email.\n\nThank you,\nThe BookToBook team </string>
 </resources>

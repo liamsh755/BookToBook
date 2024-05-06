@@ -26,11 +26,13 @@ public class VPbuttonsAdapter extends RecyclerView.Adapter<VPbuttonsAdapter.view
     private List<VPbuttonsItem> vpItems;
     private ViewPager2 vpWidget;
     private Context context;
+    private ViewPagerButtonClickListener clickListener;
 
-    public VPbuttonsAdapter(List<VPbuttonsItem> vpItems, ViewPager2 vpWidget, Context context) {
+    public VPbuttonsAdapter(List<VPbuttonsItem> vpItems, ViewPager2 vpWidget, Context context, ViewPagerButtonClickListener clickListener) {
         this.vpItems = vpItems;
         this.vpWidget = vpWidget;
         this.context = context;
+        this.clickListener = clickListener;
     }
 
     @NonNull
@@ -84,8 +86,9 @@ public class VPbuttonsAdapter extends RecyclerView.Adapter<VPbuttonsAdapter.view
                             if (x >= squareLeft && x <= squareRight && y >= squareTop && y <= squareBottom) {
                                 // Touch occurred within the square area around the center of the view
                                 // Your logic here
-                                Toast.makeText(context, String.valueOf(position % 5), Toast.LENGTH_SHORT).show();
-                                actionPosition(position);
+//                                Toast.makeText(context, String.valueOf(position % 5), Toast.LENGTH_SHORT).show();
+//                                actionPosition(position);
+                                clickListener.onViewPagerButtonClicked(position);
                             }
                         }
                         return true;
@@ -95,29 +98,6 @@ public class VPbuttonsAdapter extends RecyclerView.Adapter<VPbuttonsAdapter.view
             }
         });
 
-    }
-
-    private void actionPosition(int pos) {
-        switch (pos) {
-            case 0:
-                int search = 1;
-                break;
-            case 1:
-                int location = 1;
-                break;
-            case 2:
-                int discover = 1;
-                break;
-            case 3:
-                int library = 1;
-                break;
-            case 4:
-                int add = 1;
-                break;
-            default:
-                Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show();
-                break;
-        }
     }
 
     @Override
@@ -146,4 +126,8 @@ public class VPbuttonsAdapter extends RecyclerView.Adapter<VPbuttonsAdapter.view
             notifyDataSetChanged();
         }
     };
+
+    public interface ViewPagerButtonClickListener {
+        void onViewPagerButtonClicked(int position);
+    }
 }

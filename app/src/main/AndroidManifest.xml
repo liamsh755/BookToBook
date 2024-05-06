@@ -13,6 +13,9 @@
         android:theme="@style/FullScreenTheme"
         tools:targetApi="31">
         <activity
+            android:name=".ACTIVITIES.AddActivity"
+            android:exported="false" />
+        <activity
             android:name=".ACTIVITIES.LibraryActivity"
             android:exported="false" />
         <activity

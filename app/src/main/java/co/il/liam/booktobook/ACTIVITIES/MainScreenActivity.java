@@ -30,7 +30,7 @@ import co.il.liam.booktobook.R;
 import co.il.liam.booktobook.VPbuttonsItem;
 import co.il.liam.model.User;
 
-public class MainScreenActivity extends BaseActivity {
+public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter.ViewPagerButtonClickListener {
     private TextView tvMainNameDisplay;
     private ViewPager2 vpButtons;
     private ImageView ivLogout;
@@ -55,7 +55,7 @@ public class MainScreenActivity extends BaseActivity {
         vpButtonsItems.add(new VPbuttonsItem(R.drawable.button_library, "My library"));
         vpButtonsItems.add(new VPbuttonsItem(R.drawable.button_add, "Add book"));
 
-        vpButtons.setAdapter(new VPbuttonsAdapter(vpButtonsItems, vpButtons, MainScreenActivity.this));
+        vpButtons.setAdapter(new VPbuttonsAdapter(vpButtonsItems, vpButtons, MainScreenActivity.this, this));
 
         vpButtons.setClipToPadding(false);
         vpButtons.setClipChildren(false);
@@ -120,4 +120,29 @@ public class MainScreenActivity extends BaseActivity {
     }
 
 
+    @Override
+    public void onViewPagerButtonClicked(int position) {
+        switch (position) {
+            case 0:
+                int search = 1;
+                break;
+            case 1:
+                int location = 1;
+                break;
+            case 2:
+                int discover = 1;
+                break;
+            case 3:
+                Intent libraryIntent = new Intent(getApplicationContext(), LibraryActivity.class);
+                libraryIntent.putExtra("user", loggedUser);
+                startActivity(libraryIntent);
+                break;
+            case 4:
+                int add = 1;
+                break;
+            default:
+                Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
 }

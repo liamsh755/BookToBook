@@ -1,28 +1,43 @@
 package co.il.liam.booktobook.ADAPTERS;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import co.il.liam.booktobook.R;
 import co.il.liam.model.Book;
 import co.il.liam.model.Library;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryHolder> {
 
     private Context context;
     private int bookLayout;
     private Library library;
+    private List<Integer> itemLayouts;
 
     private OnItemClickListener listener;
     private OnItemLongClickListener longListener;
+
+    private static int expandedPosition = -1;
 
     public LibraryAdapter(Context context, int bookLayout, Library library, OnItemClickListener listener, OnItemLongClickListener longListener) {
         this.context = context;
@@ -32,10 +47,44 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
         this.longListener = longListener;
     }
 
+    private int getLayoutForBook(Book book) {
+        int[] layouts = {R.layout.book_thick_tall, R.layout.book_thick_med, R.layout.book_thick_short,
+                         R.layout.book_thin_tall,  R.layout.book_thin_med,  R.layout.book_thin_short  };
+
+        int layout = 0;
+
+        if (book.getWidth() == Book.Width.THIN) {
+            layout += 3;
+        }
+
+        switch (book.getHeight()) {
+            case TALL:
+                layout += 0;  //redundant, for readability
+                break;
+
+            case MEDIUM:
+                layout += 1;
+                break;
+
+            case SHORT:
+                layout += 2;
+                break;
+
+        }
+
+        return layouts[layout];
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        Book book  = library.get(position);
+        return getLayoutForBook(book);
+    }
+
     @NonNull
     @Override
     public LibraryAdapter.LibraryHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new LibraryHolder(LayoutInflater.from(context).inflate(bookLayout, parent, false));
+        return new LibraryHolder(LayoutInflater.from(context).inflate(viewType, parent, false));
     }
 
     @Override
@@ -52,28 +101,139 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
         return (library != null) ? library.size() : 0;
     }
 
+    public void enlargeItem(int position) {
+        expandedPosition = position;
+        notifyDataSetChanged();
+    }
+
 
     public static class LibraryHolder extends RecyclerView.ViewHolder {
         private TextView tvBookTitle;
         private TextView tvBookAuthor;
-        private ImageView ivBookImage;
+        private CircleImageView civBookImage;
+
+        private CardView cvBookBackground;  // for changing the margin of a selected book + for mainColor
+        private ConstraintLayout clBookBorder; // for selected / unselected black border
+
+        private ConstraintLayout vBookDec1;
+        private View vBookDec2;
+        private View vBookDec3;
+        private View vBookDec4;
 
         public LibraryHolder(@NonNull View itemView) {
             super(itemView);
-//            tvBookTitle = itemView.findViewById(R.id.tvBookTitle);
-//            tvBookAuthor = itemView.findViewById(R.id.tvBookAuthor);
-//            ivBookImage = itemView.findViewById(R.id.ivBookImage);
+            tvBookTitle = itemView.findViewById(R.id.tvBookTitle);
+            tvBookAuthor = itemView.findViewById(R.id.tvBookAuthor);
+            civBookImage = itemView.findViewById(R.id.civBookImage);
+
+            cvBookBackground = itemView.findViewById(R.id.cvBookBackground);
+            clBookBorder = itemView.findViewById(R.id.clBookBorder);
+
+            vBookDec1 = itemView.findViewById(R.id.vBookDec1);
+            vBookDec2 = itemView.findViewById(R.id.vBookDec2);
+            vBookDec3 = itemView.findViewById(R.id.vBookDec3);
+            vBookDec4 = itemView.findViewById(R.id.vBookDec4);
         }
 
         public void bind (Book book, OnItemClickListener listener, OnItemLongClickListener longListener) {
+            //set info
             tvBookTitle.setText(book.getTitle());
             tvBookAuthor.setText(book.getAuthor());
-            ivBookImage.setImageBitmap(book.getImage());
+            civBookImage.setImageBitmap(book.getImage());
 
+            //set colors
+            int mainColor = book.getMainColor();
+            int secColor = book.getSecColor();
+
+            cvBookBackground.setBackgroundTintList(ColorStateList.valueOf(book.getMainColor()));
+            vBookDec1.setBackgroundColor(secColor);
+            vBookDec2.setBackgroundColor(secColor);
+            vBookDec3.setBackgroundColor(secColor);
+            vBookDec4.setBackgroundColor(secColor);
+
+            if (mainColor == ContextCompat.getColor(itemView.getContext(), R.color.book_black)) {
+                tvBookTitle.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.book_White));
+                tvBookAuthor.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.book_White));
+            }
+
+            //set selected item
+            int position = getAdapterPosition();
+
+            if (position == expandedPosition) {
+                clBookBorder.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.book_border_selected));
+
+                ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) cvBookBackground.getLayoutParams();
+                layoutParams.setMargins(30, 0, 30, 0);
+                cvBookBackground.setLayoutParams(layoutParams);
+            }
+            else {
+                clBookBorder.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.book_border));
+
+                ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) cvBookBackground.getLayoutParams();
+                layoutParams.setMargins(0, 0, 0, 0);
+                cvBookBackground.setLayoutParams(layoutParams);
+            }
+
+            //set font
+            switch (book.getFont()) {
+                case 1:
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.archivo);
+                        tvBookAuthor.setTypeface(font_reg);
+                        Typeface font_bold = ResourcesCompat.getFont(itemView.getContext(), R.font.archivo_semibold);
+                        tvBookTitle.setTypeface(font_bold);
+                    }
+                    break;
+                case 2:
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.baloo_bhaina_2);
+                        tvBookAuthor.setTypeface(font_reg);
+                        Typeface font_bold = ResourcesCompat.getFont(itemView.getContext(), R.font.baloo_bhaina_2_semibold);
+                        tvBookTitle.setTypeface(font_bold);
+                    }
+                    break;
+                case 3:
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.lobster);
+                        tvBookAuthor.setTypeface(font_reg);
+                        tvBookTitle.setTypeface(font_reg);
+                    }
+                    break;
+                case 4:
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.playball);
+                        tvBookAuthor.setTypeface(font_reg);
+                        tvBookTitle.setTypeface(font_reg);
+                    }
+                    break;
+                case 5:
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.almendra);
+                        tvBookAuthor.setTypeface(font_reg);
+                        Typeface font_bold = ResourcesCompat.getFont(itemView.getContext(), R.font.almendra_bold);
+                        tvBookTitle.setTypeface(font_bold);
+                    }
+                    break;
+            }
+
+            //set decoration lines
+            switch (book.getDecorations()) {
+                case 1:
+                    vBookDec2.setVisibility(View.GONE);
+                    vBookDec4.setVisibility(View.GONE);
+                    break;
+                case 2:
+                    vBookDec2.setVisibility(View.GONE);
+                case 4:
+                    vBookDec3.setVisibility(View.GONE);
+            }
+
+            // click listeners
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listener.onItemClicked(book);
+                    listener.onItemClicked(book, position);
+
                 }
             });
 
@@ -85,6 +245,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
                 }
             });
         }
+
     }
 
     public void setLibrary(Library library) {
@@ -93,10 +254,10 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
     }
 
     public interface OnItemClickListener {
-        public void onItemClicked(Book book);
+        void onItemClicked(Book book, int position);
     }
 
     public interface OnItemLongClickListener {
-        public boolean onItemLongClicked(Book book);
+        boolean onItemLongClicked(Book book);
     }
 }

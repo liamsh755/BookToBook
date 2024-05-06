@@ -2,9 +2,10 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="78dp"
     android:layout_height="wrap_content"
-    android:background="@android:color/transparent">
+    android:background="@android:color/transparent"
+    app:cardCornerRadius="9dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
@@ -33,11 +34,20 @@
             app:layout_constraintStart_toStartOf="@+id/imageView"
             app:layout_constraintTop_toTopOf="@+id/imageView">
 
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/civBookImage"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                app:layout_constraintBottom_toTopOf="@+id/guideline3"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/guideline4" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 app:layout_constraintBottom_toTopOf="@+id/guideline2"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -46,13 +56,32 @@
                 app:layout_constraintVertical_bias="0.5">
 
                 <TextView
-                    android:id="@+id/textView3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/tvBookTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="75dp"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginRight="4dp"
+                    android:layout_marginBottom="1dp"
+                    android:ellipsize="end"
                     android:gravity="center"
-                    android:rotation="270"
-                    android:text="Author "
-                    android:textSize="16sp" />
+                    android:maxLines="4"
+                    android:text="Title"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvBookAuthor"
+                    android:layout_width="match_parent"
+                    android:layout_height="35dp"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginRight="4dp"
+                    android:layout_marginBottom="1dp"
+                    android:ellipsize="end"
+                    android:gravity="bottom|center_horizontal"
+                    android:maxLines="2"
+                    android:text="Author"
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
@@ -69,6 +98,13 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 app:layout_constraintGuide_begin="80dp" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_begin="15dp" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="preloaded_fonts" translatable="false">
+        <item>@font/abril_fatface</item>
+        <item>@font/alata</item>
+        <item>@font/almendra</item>
+        <item>@font/almendra_bold</item>
+        <item>@font/almendra_display</item>
+        <item>@font/archivo</item>
+        <item>@font/archivo_semibold</item>
+        <item>@font/astloch</item>
+        <item>@font/baloo_bhaina_2</item>
+        <item>@font/baloo_bhaina_2_semibold</item>
+        <item>@font/dancing_script</item>
+        <item>@font/homemade_apple</item>
+        <item>@font/lobster</item>
         <item>@font/montserrat_alternates_light</item>
         <item>@font/montserrat_alternates_medium</item>
+        <item>@font/playball</item>
     </array>
 </resources>

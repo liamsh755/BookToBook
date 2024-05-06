@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cvBookBackground"
+    android:layout_width="58dp"
+    android:layout_height="250dp"
+    android:backgroundTint="#FDA802"
+    android:rotation="180"
+    app:cardCornerRadius="9dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clBookBorder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/book_border"
+        android:elevation="10dp">
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clLaLa"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="1dp">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="16dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="234dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="76dp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_end="45dp" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/vBookDec1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#4A9FAE"
+            app:layout_constraintBottom_toTopOf="@+id/guideline9"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/guideline7">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/civBookImage"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:padding="3dp"
+                android:src="@drawable/books_background"
+                app:civ_border_color="#0B0B0B"
+                app:civ_border_width="1dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/guideline8"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/guideline10">
+
+            <View
+                android:id="@+id/vBookDec2"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:background="#4A9FAE" />
+
+            <View
+                android:id="@+id/vBookDec3"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="6dp"
+                android:background="#4A9FAE" />
+
+            <View
+                android:id="@+id/vBookDec4"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:background="#4A9FAE" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/guideline10"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/guideline9">
+
+            <TextView
+                android:id="@+id/tvBookTitle"
+                android:layout_width="match_parent"
+                android:layout_height="78dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginTop="1dp"
+                android:layout_marginRight="3dp"
+                android:layout_marginBottom="1dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/playball"
+                android:gravity="center"
+                android:lineSpacingExtra="-1dp"
+                android:maxLines="4"
+                android:text="Title"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvBookAuthor"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginLeft="3dp"
+                android:layout_marginTop="1dp"
+                android:layout_marginRight="3dp"
+                android:layout_marginBottom="1dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/playball"
+                android:gravity="bottom|center"
+                android:maxLines="3"
+                android:text="Author"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

@@ -8,14 +8,39 @@
     android:background="@drawable/background_gradient"
     tools:context=".ACTIVITIES.LibraryActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvLibrary"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/guideline11"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.152" />
+        app:layout_constraintVertical_bias="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLibrary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:layout_marginTop="5dp"
+            android:foregroundGravity="bottom|center"
+            android:rotation="180" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:elevation="20dp"
+            android:scaleType="centerCrop"
+            app:srcCompat="@drawable/shelf_dec" />
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="310dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

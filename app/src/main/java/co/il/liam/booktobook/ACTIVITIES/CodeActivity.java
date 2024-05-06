@@ -23,6 +23,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.Locale;
 import java.util.Random;
 
+import co.il.liam.booktobook.EmailSender;
 import co.il.liam.booktobook.R;
 
 public class CodeActivity extends BaseActivity {
@@ -40,8 +41,6 @@ public class CodeActivity extends BaseActivity {
 
     private String code = "";
     private String recipientEmail = "";
-    private static final String SUPPORT_EMAIL = "Liam.Shvarts@gmail.com";
-    private static final String SUPPORT_EMAIL_PASSWORD = "Carrots755";
 
     private long remainingTime = 300000; // Milliseconds (5 minutes)
 
@@ -59,7 +58,6 @@ public class CodeActivity extends BaseActivity {
     private void sendInitialCodeEmail() {
 
         code = generateCode();
-        Toast.makeText(getApplicationContext(), code, Toast.LENGTH_LONG).show();
 
         Intent sentInfoIntent = getIntent();
         String name = sentInfoIntent.getStringExtra("name");
@@ -69,10 +67,10 @@ public class CodeActivity extends BaseActivity {
             String emailSubject = "Password reset for BookToBook";
             String emailBody = "Hi, " + name + "!\n\n" +
                     getString(R.string.email_msg1)
-                    + "Your verification code: " + code + "\n\n" +
+                    + "\n\nYour verification code: " + code + "\n\n" +
                     getString(R.string.email_msg2);
 
-            //send email
+            EmailSender.sendEmail(getApplicationContext(), recipientEmail, emailSubject, emailBody);
         }
 
 
@@ -510,59 +508,8 @@ public class CodeActivity extends BaseActivity {
     }
 
 
-
-    public static void sendCodeEmail() {
-        //                    new Thread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            try {
-//                                Properties properties = new Properties();
-//                                properties.put("mail.smtp.auth", "true");
-//                                properties.put("mail.smtp.starttls.enable", "true");
-//                                properties.put("mail.smtp.host", "smtp.gmail.com"); // Your SMTP server host
-//                                properties.put("mail.smtp.port", "465"); // Your SMTP server port
-//
-//                                Session session = Session.getInstance(properties, new Authenticator() {
-//                                    @Override
-//                                    protected PasswordAuthentication getPasswordAuthentication() {
-//                                        return new PasswordAuthentication(SUPPORT_EMAIL, SUPPORT_EMAIL_PASSWORD);
-//                                    }
-//                                });
-//
-//                                MimeMessage message = new MimeMessage(session);
-//                                message.setFrom(new InternetAddress(SUPPORT_EMAIL));
-//                                message.setRecipients(MimeMessage.RecipientType.TO, InternetAddress.parse(recepientEmail));
-//                                message.setSubject(emailSubject);
-//                                message.setText(emailBody);
-//
-//                                Transport.send(message);
-//                                Toast.makeText(getApplicationContext(), "Email sent!", Toast.LENGTH_SHORT).show();
-//
-//                            }
-//                            catch (MessagingException e) {
-//                                runOnUiThread(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        Toast.makeText(getApplicationContext(), "Failed to send email", Toast.LENGTH_SHORT).show();
-//                                    }
-//                                });
-//                            }
-//                            catch (Exception e) {
-//                                runOnUiThread(new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        Toast.makeText(getApplicationContext(), "Unknown error:" + e, Toast.LENGTH_SHORT).show();
-//                                    }
-//                                });
-//                            }
-//                        }
-//                    }).start();
-//                }
-    }
-
-    public static String generateCode() {
+    public String generateCode() {
         Random random = new Random();
-        String sCode = String.valueOf(random.nextInt(900000) + 100000);
-        return sCode;
+        return String.valueOf(random.nextInt(900000) + 100000);
     }
 }

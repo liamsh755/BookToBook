@@ -17,6 +17,17 @@ public class Book {
         FOR_DISPLAY
     }
 
+    public enum Height {
+        TALL,
+        MEDIUM,
+        SHORT
+    }
+
+    public enum Width {
+        THICK,
+        THIN
+    }
+
     private String id;
     private String title;
     private String genre;
@@ -26,12 +37,19 @@ public class Book {
     private String author;
     private String description;
     private Bitmap image;
-    private Color color;
+
+    private int mainColor;
+    private int secColor;
+    private Height height;
+    private Width width;
+    private int decorations;
+    private int font;
 
     public Book() {}
 
     public Book(String id, String title, String genre, int numInSeries,
-                Condition condition, Exchange exchange, String author, String description, Bitmap image, Color color) {
+                Condition condition, Exchange exchange, String author, String description, Bitmap image,
+                int mainColor, int secColor, Height height, Width width, int decorations, int font) {
         this.id = id;
         this.title = title;
         this.genre = genre;
@@ -41,12 +59,24 @@ public class Book {
         this.author = author;
         this.description = description;
         this.image = image;
-        this.color = color;
+        this.mainColor = mainColor;
+        this.secColor = secColor;
+        this.height = height;
+        this.width = width;
+        this.decorations = decorations;
+        this.font = font;
     }
-    public Book(String title, String author, Bitmap image) {
+
+    public Book(String title, String author, Bitmap image,int mainColor, int secColor, Height height, Width width, int decorations, int font) {
         this.title = title;
         this.author = author;
         this.image = image;
+        this.mainColor = mainColor;
+        this.secColor = secColor;
+        this.height = height;
+        this.width = width;
+        this.decorations = decorations;
+        this.font = font;
     }
 
     public String getId() {
@@ -121,11 +151,51 @@ public class Book {
         this.image = image;
     }
 
-    public Color getColor() {
-        return color;
+    public int getMainColor() {
+        return mainColor;
     }
 
-    public void setColor(Color color) {
-        this.color = color;
+    public void setMainColor(int mainColor) {
+        this.mainColor = mainColor;
+    }
+
+    public int getSecColor() {
+        return secColor;
+    }
+
+    public void setSecColor(int secColor) {
+        this.secColor = secColor;
+    }
+
+    public Height getHeight() {
+        return height;
+    }
+
+    public void setHeight(Height height) {
+        this.height = height;
+    }
+
+    public Width getWidth() {
+        return width;
+    }
+
+    public void setWidth(Width width) {
+        this.width = width;
+    }
+
+    public int getDecorations() {
+        return decorations;
+    }
+
+    public void setDecorations(int decorations) {
+        this.decorations = decorations;
+    }
+
+    public int getFont() {
+        return font;
+    }
+
+    public void setFont(int font) {
+        this.font = font;
     }
 }
