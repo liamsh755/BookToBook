@@ -7,7 +7,7 @@ public class Book {
 
     public enum Condition {
         PERFECT,
-        SLIGHTLY_USED,
+        USED,
         OLD
     }
 
@@ -28,10 +28,22 @@ public class Book {
         THIN
     }
 
-    private String id;
+    public enum Decoration {
+        ONE_LINE,
+        TWO_LINES,
+        THREE_LINES,
+        THICK_LINE
+    }
+
+    public enum Font{
+        BASIC,
+        CLASSIC,
+        CURSIVE,
+        GOTHIC,
+        FUN
+    }
     private String title;
     private String genre;
-    private int numInSeries;
     private Condition condition;
     private Exchange exchange;
     private String author;
@@ -42,18 +54,16 @@ public class Book {
     private int secColor;
     private Height height;
     private Width width;
-    private int decorations;
-    private int font;
+    private Decoration decorations;
+    private Font font;
 
     public Book() {}
 
-    public Book(String id, String title, String genre, int numInSeries,
-                Condition condition, Exchange exchange, String author, String description, Bitmap image,
-                int mainColor, int secColor, Height height, Width width, int decorations, int font) {
-        this.id = id;
+    public Book(String title, String author, String description, String genre,                           //book details
+                Condition condition, Exchange exchange,  Bitmap image,                                   //trade details
+                int mainColor, int secColor, Height height, Width width, Decoration decorations, Font font) {    //layout details
         this.title = title;
         this.genre = genre;
-        this.numInSeries = numInSeries;
         this.condition = condition;
         this.exchange = exchange;
         this.author = author;
@@ -67,7 +77,7 @@ public class Book {
         this.font = font;
     }
 
-    public Book(String title, String author, Bitmap image,int mainColor, int secColor, Height height, Width width, int decorations, int font) {
+    public Book(String title, String author, Bitmap image,int mainColor, int secColor, Height height, Width width, Decoration decorations, Font font) {
         this.title = title;
         this.author = author;
         this.image = image;
@@ -77,14 +87,6 @@ public class Book {
         this.width = width;
         this.decorations = decorations;
         this.font = font;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getTitle() {
@@ -101,14 +103,6 @@ public class Book {
 
     public void setGenre(String genre) {
         this.genre = genre;
-    }
-
-    public int getNumInSeries() {
-        return numInSeries;
-    }
-
-    public void setNumInSeries(int numInSeries) {
-        this.numInSeries = numInSeries;
     }
 
     public Condition getCondition() {
@@ -183,19 +177,19 @@ public class Book {
         this.width = width;
     }
 
-    public int getDecorations() {
+    public Decoration getDecorations() {
         return decorations;
     }
 
-    public void setDecorations(int decorations) {
+    public void setDecorations(Decoration decorations) {
         this.decorations = decorations;
     }
 
-    public int getFont() {
+    public Font getFont() {
         return font;
     }
 
-    public void setFont(int font) {
+    public void setFont(Font font) {
         this.font = font;
     }
 }

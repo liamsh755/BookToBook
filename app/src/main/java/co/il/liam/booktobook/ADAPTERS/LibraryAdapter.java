@@ -1,9 +1,7 @@
 package co.il.liam.booktobook.ADAPTERS;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.view.LayoutInflater;
@@ -18,9 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import co.il.liam.booktobook.R;
 import co.il.liam.model.Book;
@@ -145,15 +141,15 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
             int mainColor = book.getMainColor();
             int secColor = book.getSecColor();
 
-            cvBookBackground.setBackgroundTintList(ColorStateList.valueOf(book.getMainColor()));
+            cvBookBackground.setBackgroundTintList(ColorStateList.valueOf(mainColor));
             vBookDec1.setBackgroundColor(secColor);
             vBookDec2.setBackgroundColor(secColor);
             vBookDec3.setBackgroundColor(secColor);
             vBookDec4.setBackgroundColor(secColor);
 
             if (mainColor == ContextCompat.getColor(itemView.getContext(), R.color.book_black)) {
-                tvBookTitle.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.book_White));
-                tvBookAuthor.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.book_White));
+                tvBookTitle.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.book_white));
+                tvBookAuthor.setTextColor(ContextCompat.getColor(itemView.getContext(), R.color.book_white));
             }
 
             //set selected item
@@ -176,7 +172,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
             //set font
             switch (book.getFont()) {
-                case 1:
+                case CLASSIC:
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.archivo);
                         tvBookAuthor.setTypeface(font_reg);
@@ -184,7 +180,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
                         tvBookTitle.setTypeface(font_bold);
                     }
                     break;
-                case 2:
+                case BASIC:
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.baloo_bhaina_2);
                         tvBookAuthor.setTypeface(font_reg);
@@ -192,21 +188,21 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
                         tvBookTitle.setTypeface(font_bold);
                     }
                     break;
-                case 3:
+                case FUN:
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.lobster);
                         tvBookAuthor.setTypeface(font_reg);
                         tvBookTitle.setTypeface(font_reg);
                     }
                     break;
-                case 4:
+                case CURSIVE:
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.playball);
                         tvBookAuthor.setTypeface(font_reg);
                         tvBookTitle.setTypeface(font_reg);
                     }
                     break;
-                case 5:
+                case GOTHIC:
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.almendra);
                         tvBookAuthor.setTypeface(font_reg);
@@ -218,14 +214,16 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
             //set decoration lines
             switch (book.getDecorations()) {
-                case 1:
+                case ONE_LINE:
                     vBookDec2.setVisibility(View.GONE);
                     vBookDec4.setVisibility(View.GONE);
                     break;
-                case 2:
+                case TWO_LINES:
                     vBookDec2.setVisibility(View.GONE);
-                case 4:
+                    break;
+                case THICK_LINE:
                     vBookDec3.setVisibility(View.GONE);
+                    break;
             }
 
             // click listeners

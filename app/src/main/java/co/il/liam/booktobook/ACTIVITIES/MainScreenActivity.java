@@ -138,7 +138,9 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
                 startActivity(libraryIntent);
                 break;
             case 4:
-                int add = 1;
+                Intent addIntent = new Intent(getApplicationContext(), AddActivity.class);
+                addIntent.putExtra("user", loggedUser);
+                startActivity(addIntent);
                 break;
             default:
                 Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
