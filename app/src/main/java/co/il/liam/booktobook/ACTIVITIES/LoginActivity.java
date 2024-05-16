@@ -153,6 +153,9 @@ public class LoginActivity extends BaseActivity {
                 else if (sPassword.isEmpty()) {
                     etLoginPassword.setError("Enter your password");
                 }
+                else if(sPassword.length() < 8) {
+                    etLoginPassword.setError("Password must be at least 8 characters long");
+                }
                 else if (!validEmail(sEmail)) {
                     etLoginEmail.setError("Enter a valid email");
                 }

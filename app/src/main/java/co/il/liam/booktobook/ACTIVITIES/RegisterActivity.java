@@ -1,6 +1,8 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -15,8 +17,10 @@ import androidx.lifecycle.ViewModelProvider;
 import java.util.regex.Pattern;
 
 import co.il.liam.booktobook.R;
+import co.il.liam.model.Book;
 import co.il.liam.model.Library;
 import co.il.liam.model.User;
+import co.il.liam.viewmodel.LibrariesViewModel;
 import co.il.liam.viewmodel.UsersViewModel;
 
 public class RegisterActivity extends BaseActivity {
@@ -30,6 +34,9 @@ public class RegisterActivity extends BaseActivity {
     private TextView tvRegGoBack;
 
     private UsersViewModel usersViewModel;
+    private LibrariesViewModel librariesViewModel;
+
+    private User newUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +66,26 @@ public class RegisterActivity extends BaseActivity {
             public void onChanged(Boolean aBoolean) {
                 pbWait.setVisibility(View.INVISIBLE);
                 if (aBoolean){
-                    Toast.makeText(RegisterActivity.this, "Saved successfully", Toast.LENGTH_SHORT).show();
-                    finish();
+                    Toast.makeText(RegisterActivity.this, "User saved successfully", Toast.LENGTH_SHORT).show();
+                    librariesViewModel.setupLibrary(newUser);
                 }
                 else {
                     Toast.makeText(RegisterActivity.this, "Registration failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+
+        librariesViewModel = new ViewModelProvider(this).get(LibrariesViewModel.class);
+
+        librariesViewModel.getSetupLibrary().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    finish();
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "library failed", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -80,6 +102,7 @@ public class RegisterActivity extends BaseActivity {
         tvLoginGo = findViewById(R.id.tvRegGo);
         tvRegGoBack = findViewById(R.id.tvRegGoBack);
 
+        newUser = new User();
     }
 
     @Override
@@ -93,15 +116,13 @@ public class RegisterActivity extends BaseActivity {
                     String sUsername = String.valueOf(etRegUsername.getText());
                     String sPassword = String.valueOf(etRegPassword.getText());
 
-                    User user = new User();
-                    user.setEmail(sEmail);
-                    user.setUsername(sUsername);
-                    user.setPassword(sPassword);
-                    user.setLibrary(new Library());
+                    newUser.setEmail(sEmail);
+                    newUser.setUsername(sUsername);
+                    newUser.setPassword(sPassword);
 
                     pbWait.setVisibility(View.VISIBLE);
 
-                    usersViewModel.add(user);
+                    usersViewModel.add(newUser);
 
                 }
             }
@@ -160,20 +181,12 @@ public class RegisterActivity extends BaseActivity {
             etRegPassword.setError("Password must be at least 8 characters long");
             return false;
         }
-        else if (sPassword.length() > 22) {
-            etRegPassword.setError("Password must not exceed 22 characters");
-            return false;
-        }
         else if (!containsDigit(sPassword)) {
             etRegPassword.setError("Password must include a number");
             return false;
         }
         else if (sUsername.length() < 4) {
             etRegUsername.setError("Username must be at least 4 characters long");
-            return false;
-        }
-        else if (sUsername.length() > 11) {
-            etRegUsername.setError("Username must not exceed 11 characters");
             return false;
         }
         else if (!validEmail(sEmail)) {

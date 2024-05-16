@@ -1,5 +1,6 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -8,10 +9,14 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import co.il.liam.booktobook.ADAPTERS.LibraryAdapter;
@@ -19,6 +24,8 @@ import co.il.liam.booktobook.R;
 import co.il.liam.model.Book;
 import co.il.liam.model.Library;
 import co.il.liam.model.User;
+import co.il.liam.viewmodel.LibrariesViewModel;
+import co.il.liam.viewmodel.UsersViewModel;
 
 public class LibraryActivity extends BaseActivity {
     private TextView tvLibraryGoBack;
@@ -28,6 +35,8 @@ public class LibraryActivity extends BaseActivity {
 
     private User loggedUser;
 
+    private LibrariesViewModel librariesViewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,8 +44,27 @@ public class LibraryActivity extends BaseActivity {
 
         initializeViews();
         setListeners();
+        setObservers();
         setLibrary();
         setRecyclerView();
+    }
+
+    private void setObservers() {
+        librariesViewModel = new ViewModelProvider(this).get(LibrariesViewModel.class);
+
+        librariesViewModel.getBooks().observe(this, new Observer<ArrayList<Book>>() {
+            @Override
+            public void onChanged(ArrayList<Book> books) {
+                if (books != null) {
+                    library.setBooks(books);
+                    addBooks();  //adds the first initial books
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "Books not found", Toast.LENGTH_SHORT).show();
+                    library = new Library(loggedUser.getEmail(), new ArrayList<>());
+                }
+            }
+        });
     }
 
     public int getRandomColor() {
@@ -68,7 +96,7 @@ public class LibraryActivity extends BaseActivity {
         Random random = new Random();
 
         Book.Font[] fonts = {
-                Book.Font.BASIC,
+                Book.Font.COMIC_SANS,
                 Book.Font.CLASSIC,
                 Book.Font.CURSIVE,
                 Book.Font.GOTHIC,
@@ -103,15 +131,16 @@ public class LibraryActivity extends BaseActivity {
         library.add(new Book("Tommorow and Tommorow and Tommorow", "Gabrielle Zevin", BitmapFactory.decodeResource(this.getResources(), R.drawable.books_background), getRandomColor(), getRandomColor(), Book.Height.TALL, Book.Width.THICK, getRandomDec(), getRandomFont()));
     }
 
-    private void setLibrary() {
+    private void setLibrary()  {
         Intent userInfoIntent = getIntent();
         loggedUser = (User) userInfoIntent.getSerializableExtra("user");
-        Library sentLibrary = loggedUser.getLibrary();
 
-        if (sentLibrary != null) { library = sentLibrary; }
-        else { library = new Library(); }
+        librariesViewModel.findBooks(loggedUser);
 
-        addBooks();
+        assert loggedUser != null;
+//        library = new Library(loggedUser.getEmail(), new ArrayList<>());
+//        addBooks();
+
     }
 
 
@@ -128,14 +157,34 @@ public class LibraryActivity extends BaseActivity {
         LibraryAdapter.OnItemLongClickListener longListener = new LibraryAdapter.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClicked(Book book) {
-                Toast.makeText(getApplicationContext(), "Long click", Toast.LENGTH_SHORT).show();
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
+                builder.setTitle(book.getTitle());
+                builder.setMessage("What action would you like to do?");
+                builder.setCancelable(true);
+                builder.setPositiveButton("Edit book", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getApplicationContext(), "edit", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                builder.setNegativeButton("Delete book", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getApplicationContext(), "remove", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
                 return true;
             }
         };
 
         library.reverseContents(); //since the recyclerview and book xml-s are flipped for books to touch the shelf
                                    // you need to reverse the order of the books so that it looks organized on the shelf
-        libraryAdapter = new LibraryAdapter(this, R.layout.book_thick_tall, library, listener, longListener);
+        libraryAdapter = new LibraryAdapter(this, R.layout.book_thick_tall, library.getBooks(), listener, longListener);
 
         rvLibrary.setAdapter(libraryAdapter);
         rvLibrary.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));

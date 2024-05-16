@@ -1,12 +1,10 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -17,8 +15,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Locale;
 import java.util.Random;
@@ -42,7 +38,17 @@ public class CodeActivity extends BaseActivity {
     private String code = "";
     private String recipientEmail = "";
 
+    //count down timer
     private long remainingTime = 300000; // Milliseconds (5 minutes)
+    private boolean taskCompleted = false;
+
+    //cooldown request code timer
+    private static long lastResetRequestTime = 0;
+    private static final long COOLDOWN_PERIOD = 120000; //Milliseconds (2 minutes)
+
+    //cooldown button request timer
+    private static long lastPressTime = 0;
+    private static final long COOLDOWN_BUTTON_PRESS = 10000; //Milliseconds (10 seconds)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,12 +56,37 @@ public class CodeActivity extends BaseActivity {
         setContentView(R.layout.activity_code);
         initializeViews();
         setListeners();
-        sendInitialCodeEmail();
+        sendCodeEmail();
         setEmailText();
         startTimer();
     }
 
-    private void sendInitialCodeEmail() {
+    private void checkSendCode() {
+        long currentTime = System.currentTimeMillis();
+
+
+        long timeSincePress = currentTime - lastPressTime;
+
+        if (timeSincePress > COOLDOWN_BUTTON_PRESS) {
+
+            long timePassed = currentTime - lastResetRequestTime;
+
+            if (timePassed < COOLDOWN_PERIOD) {
+                long remainingTime = COOLDOWN_PERIOD - timePassed;
+                long seconds = remainingTime / 1000;
+                Toast.makeText(getApplicationContext(), "Try again in " + seconds + " seconds", Toast.LENGTH_SHORT).show();
+            }
+
+            else {
+                sendCodeEmail();
+            }
+
+            lastPressTime = System.currentTimeMillis();
+        }
+
+    }
+
+    private void sendCodeEmail() {
 
         code = generateCode();
 
@@ -73,6 +104,8 @@ public class CodeActivity extends BaseActivity {
             EmailSender.sendEmail(getApplicationContext(), recipientEmail, emailSubject, emailBody);
         }
 
+        lastResetRequestTime = System.currentTimeMillis();
+        lastPressTime = lastResetRequestTime;
 
     }
 
@@ -80,13 +113,19 @@ public class CodeActivity extends BaseActivity {
         new CountDownTimer(remainingTime, 1000) { // Milliseconds between updates (1 second)
             @Override
             public void onTick(long millisUntilFinished) {
-                remainingTime = millisUntilFinished;
+                if (!taskCompleted) {
+                    remainingTime = millisUntilFinished;
 
-                if (remainingTime < 30000) {
-                    tvCodeTimer.setTextColor(Color.RED);
+                    if (remainingTime < 30000) {
+                        tvCodeTimer.setTextColor(Color.RED);
+                    }
+
+                    updateTimerText();
+                }
+                else {
+                    cancel();
                 }
 
-                updateTimerText();
             }
 
             @Override
@@ -95,6 +134,7 @@ public class CodeActivity extends BaseActivity {
                 Intent intentGoCode = new Intent(getApplicationContext(), StartActivity.class);
                 startActivity(intentGoCode);
             }
+
         }.start();
     }
 
@@ -149,6 +189,7 @@ public class CodeActivity extends BaseActivity {
                             etCode5.getText().toString() + etCode6.getText().toString();
 
                     if (givenCode.equals(code)) {
+                        taskCompleted = true;
                         Intent intentChangePassword = new Intent(getApplicationContext(), ChangePasswordActivity.class);
                         intentChangePassword.putExtra("email", recipientEmail);
                         startActivity(intentChangePassword);
@@ -457,23 +498,25 @@ public class CodeActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
 
-                MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CodeActivity.this)
-                        .setTitle("Can't find my code")
-                        .setMessage("Make sure you've written your email correctly\nTo contact support email BookToBookSupport@gmail.com")
-                        .setCancelable(true)
-                        .setPositiveButton("Resend code", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Toast.makeText(getApplicationContext(), "When email work do this\n" + code, Toast.LENGTH_LONG).show();
-                            }
-                        })
-                        .setNegativeButton("Retype email", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Intent intentGoBack = new Intent(getApplicationContext(), ForgotPasswordActivity.class);
-                                startActivity(intentGoBack);
-                            }
-                        });
+                AlertDialog.Builder builder = new AlertDialog.Builder(CodeActivity.this);
+                builder.setTitle("Didn't get the code");
+                builder.setMessage("Make sure you've written your information correctly.\nTo contact support you can write to BookToBookCS@gmail.com");
+                builder.setCancelable(true);
+                builder.setPositiveButton("Resend code", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        checkSendCode();
+                    }
+                });
+                builder.setNegativeButton("Retype email", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent forgotPasswordIntent = new Intent(getApplicationContext(), ForgotPasswordActivity.class);
+                        forgotPasswordIntent.putExtra("email", recipientEmail);
+                        forgotPasswordIntent.putExtra("code", 1);
+                        startActivity(forgotPasswordIntent);
+                    }
+                });
 
                 AlertDialog dialog = builder.create();
                 dialog.show();

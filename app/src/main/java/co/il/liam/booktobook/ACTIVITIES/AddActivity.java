@@ -1,8 +1,14 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
 import static co.il.liam.model.Book.Height;
+import static co.il.liam.model.Book.Width;
+import static co.il.liam.model.Book.Decoration;
+import static co.il.liam.model.Book.Font;
+import static co.il.liam.model.Book.Exchange;
+import static co.il.liam.model.Book.Condition;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -43,6 +49,8 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -57,9 +65,14 @@ import java.util.Random;
 
 import co.il.liam.booktobook.R;
 import co.il.liam.model.Book;
+import co.il.liam.model.User;
+import co.il.liam.viewmodel.UsersViewModel;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class AddActivity extends BaseActivity {
+    private User loggedUser;
+    private UsersViewModel usersViewModel;
+
     private TextView tvAddGoBack;
     private CheckBox cbAddPreview;
     private FrameLayout flAddPreview;
@@ -122,12 +135,31 @@ public class AddActivity extends BaseActivity {
         initializeViews();
         setListeners();
         setSpinners();
+        setObservers();
     }
+
+    private void setObservers() {
+        usersViewModel = new ViewModelProvider(this).get(UsersViewModel.class);
+
+        usersViewModel.getAddedBook().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    Toast.makeText(getApplicationContext(), "Added book", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "Error adding book, Please contact support", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
     private void setSpinners() {
         //Width
         ArrayList<String> widths  = new ArrayList<>();
-        widths.add(fixEnumText(Book.Width.THIN.toString()));
-        widths.add(fixEnumText(Book.Width.THICK.toString()));
+        widths.add(fixEnumText(Width.THIN.toString()));
+        widths.add(fixEnumText(Width.THICK.toString()));
         ArrayAdapter<String> widthsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, widths);
         widthsAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         spnAddWidth.setAdapter(widthsAdapter);
@@ -173,39 +205,39 @@ public class AddActivity extends BaseActivity {
 
         //Decorations
         ArrayList<String> decorations  = new ArrayList<>();
-        decorations.add(fixEnumText(Book.Decoration.ONE_LINE.toString()));
-        decorations.add(fixEnumText(Book.Decoration.TWO_LINES.toString()));
-        decorations.add(fixEnumText(Book.Decoration.THREE_LINES.toString()));
-        decorations.add(fixEnumText(Book.Decoration.THICK_LINE.toString()));
+        decorations.add(fixEnumText(Decoration.ONE_LINE.toString()));
+        decorations.add(fixEnumText(Decoration.TWO_LINES.toString()));
+        decorations.add(fixEnumText(Decoration.THREE_LINES.toString()));
+        decorations.add(fixEnumText(Decoration.THICK_LINE.toString()));
         ArrayAdapter<String> decorationsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, decorations);
         decorationsAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         spnAddDecoration.setAdapter(decorationsAdapter);
 
         //Font
         ArrayList<String> fonts  = new ArrayList<>();
-        fonts.add(fixEnumText(Book.Font.BASIC.toString()));
-        fonts.add(fixEnumText(Book.Font.CLASSIC.toString()));
-        fonts.add(fixEnumText(Book.Font.CURSIVE.toString()));
-        fonts.add(fixEnumText(Book.Font.GOTHIC.toString()));
-        fonts.add(fixEnumText(Book.Font.FUN.toString()));
+        fonts.add(fixEnumText(Font.COMIC_SANS.toString()));
+        fonts.add(fixEnumText(Font.CLASSIC.toString()));
+        fonts.add(fixEnumText(Font.CURSIVE.toString()));
+        fonts.add(fixEnumText(Font.GOTHIC.toString()));
+        fonts.add(fixEnumText(Font.FUN.toString()));
         ArrayAdapter<String> fontsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, fonts);
         fontsAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         spnAddFont.setAdapter(fontsAdapter);
 
         //conditions
         ArrayList<String> conditions  = new ArrayList<>();
-        conditions.add(fixEnumText(Book.Condition.PERFECT.toString()));
-        conditions.add(fixEnumText(Book.Condition.USED.toString()));
-        conditions.add(fixEnumText(Book.Condition.OLD.toString()));
+        conditions.add(fixEnumText(Condition.PERFECT.toString()));
+        conditions.add(fixEnumText(Condition.USED.toString()));
+        conditions.add(fixEnumText(Condition.OLD.toString()));
         ArrayAdapter<String> conditionsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, conditions);
         conditionsAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         spnAddCondition.setAdapter(conditionsAdapter);
 
         //status
         ArrayList<String> statuses  = new ArrayList<>();
-        statuses.add(fixEnumText(Book.Exchange.PERMANENT.toString()));
-        statuses.add(fixEnumText(Book.Exchange.TEMPORARY.toString()));
-        statuses.add(fixEnumText(Book.Exchange.FOR_DISPLAY.toString()));
+        statuses.add(fixEnumText(Exchange.PERMANENT.toString()));
+        statuses.add(fixEnumText(Exchange.TEMPORARY.toString()));
+        statuses.add(fixEnumText(Exchange.FOR_DISPLAY.toString()));
         ArrayAdapter<String> statusesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, statuses);
         statusesAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         spnAddExchange.setAdapter(statusesAdapter);
@@ -259,8 +291,8 @@ public class AddActivity extends BaseActivity {
         setBookLayout(width, height);
 
         //set colors
-        int mainColor = getColorFromString(spnAddMainColor.getSelectedItem().toString());
-        int secColor = getColorFromString(spnAddSecColor.getSelectedItem().toString());
+        int mainColor = getColorFromString(spnAddMainColor.getSelectedItem().toString(), "preview");
+        int secColor = getColorFromString(spnAddSecColor.getSelectedItem().toString(), "preview");
         setBookColors(mainColor, secColor);
 
         //set decorations and font
@@ -281,6 +313,9 @@ public class AddActivity extends BaseActivity {
 
     @Override
     protected void initializeViews() {
+        Intent  userIntent = getIntent();
+        loggedUser = (User) userIntent.getSerializableExtra("user");
+
         tvAddGoBack = findViewById(R.id.tvAddGoBack);
         cbAddPreview = findViewById(R.id.cbAddPreview);
         flAddPreview = findViewById(R.id.flAddPreview);
@@ -543,7 +578,7 @@ public class AddActivity extends BaseActivity {
         ivAddInfoExchange.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                popInfoDialogMessage("Exchange meaning", "Describes whether this book is timed switch or not.\nIf you don't plan on trading this book set it as display.");
+                popInfoDialogMessage("Exchange meaning", "Describes whether this book is a timed switch or not.\nIf you don't plan on trading this book set it as display.");
             }
         });
         ivAddInfoPicture.setOnClickListener(new View.OnClickListener() {
@@ -579,12 +614,25 @@ public class AddActivity extends BaseActivity {
                     listen = true;
                 }
                 else {
-                    Book book = new Book();
-                    book.setTitle(etAddTitle.getText().toString());
-                    book.setAuthor(etAddAuthor.getText().toString());
-                    book.setDescription(etAddDescription.getText().toString());
-                    book.setGenre(etAddGenre.getText().toString());
+                    AlertDialog.Builder builder = new AlertDialog.Builder(AddActivity.this);
+                    builder.setTitle("Are you sure?");
+                    builder.setMessage("Please make sure all the book information you've enter is correct and won't confuse yourself and other users with mistakes and typos.");
+                    builder.setCancelable(false);
+                    builder.setPositiveButton("Add book", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            addBook();
+                        }
+                    });
+                    builder.setNegativeButton("Recheck", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
 
+                        }
+                    });
+
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
                 }
             }
         });
@@ -649,6 +697,64 @@ public class AddActivity extends BaseActivity {
         });
     }
 
+    private void addBook() {
+        if (valid()) {
+            Book book = new Book();
+
+            book.setTitle(etAddTitle.getText().toString());
+            book.setAuthor(etAddAuthor.getText().toString());
+            book.setDescription(etAddDescription.getText().toString());
+            book.setGenre(etAddGenre.getText().toString());
+
+            book.setExchange(Exchange.valueOf(revertFixedEnumText(spnAddExchange.getSelectedItem().toString())));
+            book.setCondition(Condition.valueOf(revertFixedEnumText(spnAddCondition.getSelectedItem().toString())));
+
+            if (Objects.equals(format, "bitmap")) {
+                book.setImage(imageBitmap);
+            }
+            else if (Objects.equals(format, "uri")) {
+                book.setImage(uriToBitmap(getApplicationContext(), imageUri));
+            }
+
+            book.setMainColor(getColorFromString(spnAddMainColor.getSelectedItem().toString(), "bookMainColor"));
+            book.setSecColor(getColorFromString(spnAddSecColor.getSelectedItem().toString(), "bookSecColor"));
+
+            book.setHeight(Height.valueOf(revertFixedEnumText(spnAddHeight.getSelectedItem().toString())));
+            book.setWidth(Width.valueOf(revertFixedEnumText(spnAddWidth.getSelectedItem().toString())));
+            book.setDecorations(Decoration.valueOf(revertFixedEnumText(spnAddDecoration.getSelectedItem().toString())));
+            book.setFont(Font.valueOf(revertFixedEnumText(spnAddFont.getSelectedItem().toString())));
+
+            //usersViewModel.addBook(loggedUser, book);
+        }
+    }
+
+    private boolean valid() {
+        String title = etAddTitle.getText().toString();
+        String author = etAddAuthor.getText().toString();
+        String description = etAddDescription.getText().toString();
+        String genre = etAddGenre.getText().toString();
+
+        if (title.isEmpty()) {
+            etAddTitle.setError("Enter the title");
+            return false;
+        }
+        else if (author.isEmpty()) {
+            etAddAuthor.setError("Enter the author");
+            return false;
+        }
+        else if (description.isEmpty()) {
+            etAddDescription.setError("Enter the description");
+            return false;
+        }
+        else if (genre.isEmpty()) {
+            etAddGenre.setError("Enter the genre");
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
 
     public boolean checkCameraPermission() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
@@ -679,7 +785,15 @@ public class AddActivity extends BaseActivity {
         }
         return capitalize;
     }
-    private int getColorFromString(String s) {
+    private static String revertFixedEnumText(String s) {
+        String upper = s.toUpperCase();
+        int space = upper.indexOf(' ');
+        if (space != -1) {
+            return upper.substring(0, space) + "_" + upper.substring(space + 1);
+        }
+        return upper;
+    }
+    private int getColorFromString(String s, String context) {
         // Convert the input string to lowercase for case-insensitive matching
         String lowercaseInput = s.toLowerCase();
 
@@ -705,8 +819,16 @@ public class AddActivity extends BaseActivity {
         Integer color;
 
         if (lowercaseInput.equals("random")) {
-            int randomIndex = new Random().nextInt(colorMap.size());
-            color = (Integer) colorMap.values().toArray()[randomIndex];
+            if (Objects.equals(context, "bookMainColor")) {
+                color = (int) cvBookBackground.getTag(androidx.appcompat.R.attr.background);
+            }
+            else if (Objects.equals(context, "bookSecColor")) {
+                color = (int) vBookDec2.getTag(androidx.appcompat.R.attr.background);
+            }
+            else {
+                int randomIndex = new Random().nextInt(colorMap.size());
+                color = (Integer) colorMap.values().toArray()[randomIndex];
+            }
         }
 
         else {
@@ -714,7 +836,7 @@ public class AddActivity extends BaseActivity {
 
             // Handle cases where the input doesn't match a color name
             if (color == null) {
-                color = colorMap.get("gold");
+                color = colorMap.get("gold"); //default color for books
             }
 
         }
@@ -809,7 +931,7 @@ public class AddActivity extends BaseActivity {
             tvBookAuthor.setTextColor(ContextCompat.getColor(this, R.color.book_white));
         }
     }
-    private void setBookDecorations(String s) {
+    private void setBookDecorations(@NonNull String s) {
         switch (s) {
             case "One line":
                 vBookDec2.setVisibility(View.GONE);
@@ -844,11 +966,11 @@ public class AddActivity extends BaseActivity {
                 }
                 break;
 
-            case "Basic":
+            case "Comic sans":
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Typeface font_reg = ResourcesCompat.getFont(this, R.font.baloo_bhaina_2);
+                    Typeface font_reg = ResourcesCompat.getFont(this, R.font.comicsans);
                     tvBookAuthor.setTypeface(font_reg);
-                    Typeface font_bold = ResourcesCompat.getFont(this, R.font.baloo_bhaina_2_semibold);
+                    Typeface font_bold = ResourcesCompat.getFont(this, R.font.comicsansbold);
                     tvBookTitle.setTypeface(font_bold);
                 }
                 break;

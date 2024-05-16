@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import co.il.liam.model.Book;
 import co.il.liam.model.User;
 import co.il.liam.repository.UsersRepository;
 
@@ -17,6 +18,7 @@ public class UsersViewModel extends AndroidViewModel {
     private MutableLiveData<String> userData;
     private MutableLiveData<Boolean> userExists;
     private MutableLiveData<Boolean> changedPassword;
+    private MutableLiveData<Boolean> addedBook;
 
     public UsersViewModel(Application application) {
         super(application);
@@ -27,6 +29,7 @@ public class UsersViewModel extends AndroidViewModel {
         userData = new MutableLiveData<>();
         userExists = new MutableLiveData<>();
         changedPassword = new MutableLiveData<>();
+        addedBook = new MutableLiveData<>();
     }
 
     public LiveData<Boolean> getAddedUser() {
@@ -43,6 +46,9 @@ public class UsersViewModel extends AndroidViewModel {
     }
     public LiveData<Boolean> getChangedPassword() {
         return changedPassword;
+    }
+    public LiveData<Boolean> getAddedBook() {
+        return addedBook;
     }
 
     public void add(User user) {

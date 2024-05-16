@@ -16,6 +16,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Objects;
 
+import co.il.liam.model.Book;
+import co.il.liam.model.Library;
 import co.il.liam.model.User;
 
 public class UsersRepository {
@@ -218,4 +220,5 @@ public class UsersRepository {
 
         return changedPassword.getTask();
     }
+
 }

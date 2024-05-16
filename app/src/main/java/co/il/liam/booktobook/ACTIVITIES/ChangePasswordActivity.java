@@ -86,6 +86,9 @@ public class ChangePasswordActivity extends BaseActivity {
                 else if (!sPassword.equals(sRePassword)) {
                     etChangeRePassword.setError("Passwords don't match");
                 }
+                else if (sPassword.length() < 8) {
+                    etChangePassword.setError("Password must be at least 8 characters long");
+                }
                 else {
                     Intent sentInfoIntent = getIntent();
                     String email = sentInfoIntent.getStringExtra("email");

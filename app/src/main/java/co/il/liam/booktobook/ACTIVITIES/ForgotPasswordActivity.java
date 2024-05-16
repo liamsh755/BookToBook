@@ -2,7 +2,6 @@ package co.il.liam.booktobook.ACTIVITIES;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,16 +9,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import java.util.Properties;
-import java.util.Random;
 import java.util.regex.Pattern;
 
 //import javax.mail.Authenticator;
@@ -42,6 +34,14 @@ public class ForgotPasswordActivity extends BaseActivity {
 
     private UsersViewModel usersViewModel;
     private User givenUser = new User();
+
+    //cooldown request code timer
+    private static long lastResetRequestTime = 0;
+    private static final long COOLDOWN_PERIOD = 30000; //Milliseconds (30 minutes)
+
+    //cooldown button request timer
+    private static long lastPressTime = 0;
+    private static final long COOLDOWN_BUTTON_PRESS = 5000; //Milliseconds (5 seconds)
 
 
     @Override
@@ -100,8 +100,18 @@ public class ForgotPasswordActivity extends BaseActivity {
     private void setSentInfo() {
         Intent sentInfoIntent = getIntent();
         String email = sentInfoIntent.getStringExtra("email");
+        int code = sentInfoIntent.getIntExtra("code", 0);
 
         etForgotEmail.setText(email);
+
+        if (code == 1) {
+            lastResetRequestTime = System.currentTimeMillis();
+            lastPressTime = lastResetRequestTime;
+        }
+        else {
+            lastResetRequestTime = System.currentTimeMillis() - COOLDOWN_PERIOD;
+            lastPressTime = lastResetRequestTime - COOLDOWN_BUTTON_PRESS;
+        }
     }
 
     @Override
@@ -134,10 +144,33 @@ public class ForgotPasswordActivity extends BaseActivity {
                     etForgotEmail.setError("Enter a valid email");
                 }
                 else {
-                    givenUser.setEmail(sEmail);
-                    pbForgot.setVisibility(View.VISIBLE);
 
-                    usersViewModel.userExists(givenUser);
+                    long currentTime = System.currentTimeMillis();
+
+
+                    long timeSincePress = currentTime - lastPressTime;
+
+                    if (timeSincePress > COOLDOWN_BUTTON_PRESS) {
+
+                        long timePassed = currentTime - lastResetRequestTime;
+
+                        if (timePassed < COOLDOWN_PERIOD) {
+                            long remainingTime = COOLDOWN_PERIOD - timePassed;
+                            long seconds = remainingTime / 1000;
+                            Toast.makeText(getApplicationContext(), "Try again in " + seconds + " seconds", Toast.LENGTH_SHORT).show();
+                        }
+
+                        else {
+                            givenUser.setEmail(sEmail);
+                            pbForgot.setVisibility(View.VISIBLE);
+
+                            usersViewModel.userExists(givenUser);
+
+                            lastResetRequestTime = System.currentTimeMillis();
+                        }
+
+                        lastPressTime = System.currentTimeMillis();
+                    }
                 }
             }
         });

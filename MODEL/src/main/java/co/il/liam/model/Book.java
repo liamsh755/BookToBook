@@ -36,7 +36,7 @@ public class Book {
     }
 
     public enum Font{
-        BASIC,
+        COMIC_SANS,
         CLASSIC,
         CURSIVE,
         GOTHIC,
@@ -64,10 +64,10 @@ public class Book {
                 int mainColor, int secColor, Height height, Width width, Decoration decorations, Font font) {    //layout details
         this.title = title;
         this.genre = genre;
-        this.condition = condition;
-        this.exchange = exchange;
         this.author = author;
         this.description = description;
+        this.condition = condition;
+        this.exchange = exchange;
         this.image = image;
         this.mainColor = mainColor;
         this.secColor = secColor;

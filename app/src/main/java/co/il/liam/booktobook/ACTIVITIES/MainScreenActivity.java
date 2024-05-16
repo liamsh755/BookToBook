@@ -1,6 +1,7 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.constraintlayout.utils.widget.MotionLabel;
 import androidx.core.content.ContextCompat;
@@ -113,8 +115,27 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
         ivLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setResult(Activity.RESULT_OK);
-                finish();
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainScreenActivity.this);
+                builder.setTitle("Logging out?");
+                builder.setMessage("Are you sure you want to leave?");
+                builder.setCancelable(false);
+                builder.setPositiveButton("Log out", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setResult(Activity.RESULT_OK);
+                        finish();
+                    }
+                });
+                builder.setNegativeButton("Stay logged in", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
         });
     }

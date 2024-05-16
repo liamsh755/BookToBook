@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import co.il.liam.booktobook.R;
@@ -27,7 +28,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     private Context context;
     private int bookLayout;
-    private Library library;
+    private ArrayList<Book> books;
     private List<Integer> itemLayouts;
 
     private OnItemClickListener listener;
@@ -35,10 +36,10 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     private static int expandedPosition = -1;
 
-    public LibraryAdapter(Context context, int bookLayout, Library library, OnItemClickListener listener, OnItemLongClickListener longListener) {
+    public LibraryAdapter(Context context, int bookLayout, ArrayList<Book> books, OnItemClickListener listener, OnItemLongClickListener longListener) {
         this.context = context;
         this.bookLayout = bookLayout;
-        this.library = library;
+        this.books = books;
         this.listener = listener;
         this.longListener = longListener;
     }
@@ -73,7 +74,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     @Override
     public int getItemViewType(int position) {
-        Book book  = library.get(position);
+        Book book  = books.get(position);
         return getLayoutForBook(book);
     }
 
@@ -85,7 +86,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     @Override
     public void onBindViewHolder(@NonNull LibraryAdapter.LibraryHolder holder, int position) {
-        Book book = library.get(position);
+        Book book = books.get(position);
 
         if (book != null) {
             holder.bind(book, listener, longListener);
@@ -94,7 +95,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     @Override
     public int getItemCount() {
-        return (library != null) ? library.size() : 0;
+        return (books != null) ? books.size() : 0;
     }
 
     public void enlargeItem(int position) {
@@ -180,11 +181,11 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
                         tvBookTitle.setTypeface(font_bold);
                     }
                     break;
-                case BASIC:
+                case COMIC_SANS:
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.baloo_bhaina_2);
+                        Typeface font_reg = ResourcesCompat.getFont(itemView.getContext(), R.font.comicsans);
                         tvBookAuthor.setTypeface(font_reg);
-                        Typeface font_bold = ResourcesCompat.getFont(itemView.getContext(), R.font.baloo_bhaina_2_semibold);
+                        Typeface font_bold = ResourcesCompat.getFont(itemView.getContext(), R.font.comicsansbold);
                         tvBookTitle.setTypeface(font_bold);
                     }
                     break;
@@ -246,8 +247,8 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     }
 
-    public void setLibrary(Library library) {
-        this.library = library;
+    public void setLibrary(ArrayList<Book> books) {
+        this.books = books;
         notifyDataSetChanged();
     }
 
