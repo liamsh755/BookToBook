@@ -37,6 +37,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,15 +64,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
+import co.il.liam.booktobook.CheckInternetConnection;
 import co.il.liam.booktobook.R;
+import co.il.liam.helper.BitMapHelper;
 import co.il.liam.model.Book;
 import co.il.liam.model.User;
+import co.il.liam.viewmodel.BooksViewModel;
 import co.il.liam.viewmodel.UsersViewModel;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class AddActivity extends BaseActivity {
     private User loggedUser;
-    private UsersViewModel usersViewModel;
+    private BooksViewModel booksViewModel;
 
     private TextView tvAddGoBack;
     private CheckBox cbAddPreview;
@@ -115,6 +119,7 @@ public class AddActivity extends BaseActivity {
     private TextView tvAddExchangeTitle;
     
     private Button btnAddConfirm;
+    private ProgressBar pbAddWait;
 
     private Boolean listen = false;
 
@@ -139,11 +144,12 @@ public class AddActivity extends BaseActivity {
     }
 
     private void setObservers() {
-        usersViewModel = new ViewModelProvider(this).get(UsersViewModel.class);
+        booksViewModel = new ViewModelProvider(this).get(BooksViewModel.class);
 
-        usersViewModel.getAddedBook().observe(this, new Observer<Boolean>() {
+        booksViewModel.getAddedBook().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
+                pbAddWait.setVisibility(View.INVISIBLE);
                 if (aBoolean) {
                     Toast.makeText(getApplicationContext(), "Added book", Toast.LENGTH_SHORT).show();
                     finish();
@@ -348,6 +354,7 @@ public class AddActivity extends BaseActivity {
         tvAddExchangeTitle = findViewById(R.id.tvAddExchangeTitle);
 
         btnAddConfirm = findViewById(R.id.btnAddConfirm);
+        pbAddWait = findViewById(R.id.pbAddWait);
     }
 
     @Override
@@ -701,6 +708,7 @@ public class AddActivity extends BaseActivity {
         if (valid()) {
             Book book = new Book();
 
+            book.setUserId(loggedUser.getIdFs());
             book.setTitle(etAddTitle.getText().toString());
             book.setAuthor(etAddAuthor.getText().toString());
             book.setDescription(etAddDescription.getText().toString());
@@ -710,10 +718,10 @@ public class AddActivity extends BaseActivity {
             book.setCondition(Condition.valueOf(revertFixedEnumText(spnAddCondition.getSelectedItem().toString())));
 
             if (Objects.equals(format, "bitmap")) {
-                book.setImage(imageBitmap);
+                book.setImage(BitMapHelper.encodeTobase64(imageBitmap));
             }
             else if (Objects.equals(format, "uri")) {
-                book.setImage(uriToBitmap(getApplicationContext(), imageUri));
+                book.setImage(BitMapHelper.encodeTobase64(uriToBitmap(getApplicationContext(), imageUri)));
             }
 
             book.setMainColor(getColorFromString(spnAddMainColor.getSelectedItem().toString(), "bookMainColor"));
@@ -724,7 +732,10 @@ public class AddActivity extends BaseActivity {
             book.setDecorations(Decoration.valueOf(revertFixedEnumText(spnAddDecoration.getSelectedItem().toString())));
             book.setFont(Font.valueOf(revertFixedEnumText(spnAddFont.getSelectedItem().toString())));
 
-            //usersViewModel.addBook(loggedUser, book);
+            if (CheckInternetConnection.check(this)) {
+                pbAddWait.setVisibility(View.VISIBLE);
+                booksViewModel.addBook(book);
+            }
         }
     }
 

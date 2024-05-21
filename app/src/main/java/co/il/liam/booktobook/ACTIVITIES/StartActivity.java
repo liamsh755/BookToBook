@@ -3,24 +3,21 @@ package co.il.liam.booktobook.ACTIVITIES;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
 
 import co.il.liam.booktobook.ADAPTERS.VPadapter;
+import co.il.liam.booktobook.NoInternetDialog;
 import co.il.liam.booktobook.R;
 import co.il.liam.booktobook.VPitem;
+import co.il.liam.booktobook.CheckInternetConnection;
 import co.il.liam.model.User;
 
 public class StartActivity extends BaseActivity {
@@ -42,6 +39,8 @@ public class StartActivity extends BaseActivity {
         setListeners();
         setRemember();
         setInfo();
+        //checks internet connection
+        CheckInternetConnection.check(this);
     }
 
     private void setRemember() {
@@ -53,6 +52,7 @@ public class StartActivity extends BaseActivity {
             foundUser.setUsername(preferences.getString("uUsername", "ERROR"));
             foundUser.setEmail(preferences.getString("uEmail", ""));
             foundUser.setPassword(preferences.getString("uPassword", ""));
+            foundUser.setIdFs(preferences.getString("uIdFs", ""));
 
             Intent intentEnter = new Intent(getApplicationContext(), MainScreenActivity.class);
             intentEnter.putExtra("user", foundUser);
@@ -91,6 +91,7 @@ public class StartActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intentLogin = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intentLogin);
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             }
         });
 
@@ -99,6 +100,7 @@ public class StartActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intentRegister = new Intent(getApplicationContext(), RegisterActivity.class);
                 startActivity(intentRegister);
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             }
         });
 

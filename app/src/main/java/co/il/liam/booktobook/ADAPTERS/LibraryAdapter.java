@@ -20,15 +20,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.il.liam.booktobook.R;
+import co.il.liam.helper.BitMapHelper;
 import co.il.liam.model.Book;
-import co.il.liam.model.Library;
+import co.il.liam.model.Books;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryHolder> {
 
     private Context context;
     private int bookLayout;
-    private ArrayList<Book> books;
+    private Books books;
     private List<Integer> itemLayouts;
 
     private OnItemClickListener listener;
@@ -36,7 +37,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     private static int expandedPosition = -1;
 
-    public LibraryAdapter(Context context, int bookLayout, ArrayList<Book> books, OnItemClickListener listener, OnItemLongClickListener longListener) {
+    public LibraryAdapter(Context context, int bookLayout, Books books, OnItemClickListener listener, OnItemLongClickListener longListener) {
         this.context = context;
         this.bookLayout = bookLayout;
         this.books = books;
@@ -136,7 +137,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
             //set info
             tvBookTitle.setText(book.getTitle());
             tvBookAuthor.setText(book.getAuthor());
-            civBookImage.setImageBitmap(book.getImage());
+            civBookImage.setImageBitmap(BitMapHelper.decodeBase64(book.getImage()));
 
             //set colors
             int mainColor = book.getMainColor();
@@ -247,7 +248,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     }
 
-    public void setLibrary(ArrayList<Book> books) {
+    public void setBooks(Books books) {
         this.books = books;
         notifyDataSetChanged();
     }

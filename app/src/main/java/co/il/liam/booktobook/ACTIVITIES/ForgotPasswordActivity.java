@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 //import javax.mail.internet.MimeMessage;
 //import javax.mail.internet.InternetAddress;
 
+import co.il.liam.booktobook.CheckInternetConnection;
 import co.il.liam.booktobook.R;
 import co.il.liam.model.User;
 import co.il.liam.viewmodel.UsersViewModel;
@@ -74,24 +75,27 @@ public class ForgotPasswordActivity extends BaseActivity {
                     Intent intentGoCode = new Intent(getApplicationContext(), CodeActivity.class);
                     intentGoCode.putExtra("email", recipientEmail);
                     startActivity(intentGoCode);
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                 }
 
             }
         });
 
-        usersViewModel.getUserData().observe(this, new Observer<String>() {
+        usersViewModel.getUserData().observe(this, new Observer<User>() {
             @Override
-            public void onChanged(String name) {
+            public void onChanged(User user) {
                 String recipientEmail = givenUser.getEmail();
 
-                if (!name.isEmpty()) {
+                if (user != null) {
+                    givenUser = user;
 
                     pbForgot.setVisibility(View.INVISIBLE);
 
                     Intent intentGoCode = new Intent(getApplicationContext(), CodeActivity.class);
-                    intentGoCode.putExtra("name", name);
+                    intentGoCode.putExtra("name", givenUser.getUsername());
                     intentGoCode.putExtra("email", recipientEmail);
                     startActivity(intentGoCode);
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                 }
             }
         });
@@ -129,6 +133,7 @@ public class ForgotPasswordActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intentGoBack = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intentGoBack);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         });
 
@@ -163,9 +168,9 @@ public class ForgotPasswordActivity extends BaseActivity {
                         else {
                             givenUser.setEmail(sEmail);
                             pbForgot.setVisibility(View.VISIBLE);
-
-                            usersViewModel.userExists(givenUser);
-
+                            if (CheckInternetConnection.check(ForgotPasswordActivity.this)) {
+                                usersViewModel.userExists(givenUser);
+                            }
                             lastResetRequestTime = System.currentTimeMillis();
                         }
 

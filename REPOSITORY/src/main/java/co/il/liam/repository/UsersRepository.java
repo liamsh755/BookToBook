@@ -16,15 +16,13 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Objects;
 
-import co.il.liam.model.Book;
-import co.il.liam.model.Library;
 import co.il.liam.model.User;
 
 public class UsersRepository {
     private FirebaseFirestore db;
     private CollectionReference collection;
-    public UsersRepository(Context context) {
 
+    public UsersRepository(Context context) {
         try {
             db = FirebaseFirestore.getInstance();
         }
@@ -144,8 +142,8 @@ public class UsersRepository {
         return detailsRight.getTask();
     }
 
-    public Task<String> getUserData(User user) {
-        TaskCompletionSource<String> userData = new TaskCompletionSource<>();
+    public Task<User> getUserData(User user) {
+        TaskCompletionSource<User> userData = new TaskCompletionSource<>();
 
         collection.whereEqualTo("email", user.getEmail()).get()
                 .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -154,9 +152,17 @@ public class UsersRepository {
                         if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
                             DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
                             if (document != null) {
+                                User fullUserData = new User();
 
                                 String username = document.getString("username");
-                                userData.setResult(username);
+                                String idFs = document.getString("idFs");
+
+                                fullUserData.setEmail(user.getEmail());
+                                fullUserData.setPassword(user.getPassword());
+                                fullUserData.setUsername(username);
+                                fullUserData.setIdFs(idFs);
+
+                                userData.setResult(fullUserData);
 
                             }
                             else

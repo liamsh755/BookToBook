@@ -19,6 +19,15 @@
         android:theme="@style/FullScreenTheme"
         tools:targetApi="31">
         <activity
+            android:name=".ACTIVITIES.DiscoverActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ACTIVITIES.LocationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ACTIVITIES.SearchActivity"
+            android:exported="false" />
+        <activity
             android:name=".ACTIVITIES.ChatActivity"
             android:exported="false" />
         <activity

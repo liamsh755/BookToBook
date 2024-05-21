@@ -1,8 +1,6 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
 import android.content.Intent;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -16,11 +14,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import java.util.regex.Pattern;
 
+import co.il.liam.booktobook.CheckInternetConnection;
 import co.il.liam.booktobook.R;
-import co.il.liam.model.Book;
-import co.il.liam.model.Library;
 import co.il.liam.model.User;
-import co.il.liam.viewmodel.LibrariesViewModel;
 import co.il.liam.viewmodel.UsersViewModel;
 
 public class RegisterActivity extends BaseActivity {
@@ -34,7 +30,6 @@ public class RegisterActivity extends BaseActivity {
     private TextView tvRegGoBack;
 
     private UsersViewModel usersViewModel;
-    private LibrariesViewModel librariesViewModel;
 
     private User newUser;
 
@@ -67,7 +62,8 @@ public class RegisterActivity extends BaseActivity {
                 pbWait.setVisibility(View.INVISIBLE);
                 if (aBoolean){
                     Toast.makeText(RegisterActivity.this, "User saved successfully", Toast.LENGTH_SHORT).show();
-                    librariesViewModel.setupLibrary(newUser);
+                    finish();
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                 }
                 else {
                     Toast.makeText(RegisterActivity.this, "Registration failed", Toast.LENGTH_SHORT).show();
@@ -75,20 +71,6 @@ public class RegisterActivity extends BaseActivity {
             }
         });
 
-
-        librariesViewModel = new ViewModelProvider(this).get(LibrariesViewModel.class);
-
-        librariesViewModel.getSetupLibrary().observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                if (aBoolean) {
-                    finish();
-                }
-                else {
-                    Toast.makeText(getApplicationContext(), "library failed", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
     }
 
     @Override
@@ -120,10 +102,11 @@ public class RegisterActivity extends BaseActivity {
                     newUser.setUsername(sUsername);
                     newUser.setPassword(sPassword);
 
-                    pbWait.setVisibility(View.VISIBLE);
+                    if (CheckInternetConnection.check(RegisterActivity.this)) {
+                        pbWait.setVisibility(View.VISIBLE);
 
-                    usersViewModel.add(newUser);
-
+                        usersViewModel.add(newUser);
+                    }
                 }
             }
         });
@@ -138,6 +121,7 @@ public class RegisterActivity extends BaseActivity {
                 intentLogin.putExtra("email", sEmail);
                 intentLogin.putExtra("password", sPassword);
                 startActivity(intentLogin);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         });
 
@@ -146,6 +130,7 @@ public class RegisterActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intentGoBack = new Intent(getApplicationContext(), StartActivity.class);
                 startActivity(intentGoBack);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         });
     }

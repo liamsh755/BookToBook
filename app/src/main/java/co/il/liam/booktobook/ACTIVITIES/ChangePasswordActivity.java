@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import co.il.liam.booktobook.CheckInternetConnection;
 import co.il.liam.booktobook.R;
 import co.il.liam.viewmodel.UsersViewModel;
 
@@ -48,6 +49,7 @@ public class ChangePasswordActivity extends BaseActivity {
                     Toast.makeText(getApplicationContext(), "Password changed!", Toast.LENGTH_SHORT).show();
                     Intent intentGoBack = new Intent(getApplicationContext(), LoginActivity.class);
                     startActivity(intentGoBack);
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                 }
             }
         });
@@ -68,6 +70,7 @@ public class ChangePasswordActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intentGoBack = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intentGoBack);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         });
 
@@ -93,7 +96,9 @@ public class ChangePasswordActivity extends BaseActivity {
                     Intent sentInfoIntent = getIntent();
                     String email = sentInfoIntent.getStringExtra("email");
                     if (email != null) {
-                        usersViewModel.changePassword(email, sPassword);
+                        if (CheckInternetConnection.check(ChangePasswordActivity.this)) {
+                            usersViewModel.changePassword(email, sPassword);
+                        }
                     }
                     else {
                         Toast.makeText(getApplicationContext(), "Email transfer problem", Toast.LENGTH_SHORT).show();

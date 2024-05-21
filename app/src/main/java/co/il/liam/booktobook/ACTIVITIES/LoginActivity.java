@@ -20,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import java.util.regex.Pattern;
 
+import co.il.liam.booktobook.CheckInternetConnection;
 import co.il.liam.booktobook.R;
 import co.il.liam.model.User;
 import co.il.liam.viewmodel.UsersViewModel;
@@ -52,6 +53,12 @@ public class LoginActivity extends BaseActivity {
         setObservers();
         setRemember();
         setSentInfo();
+        cheat();
+    }
+
+    private void cheat() {
+        etLoginEmail.setText("kaftor06@gmail.com");
+        etLoginPassword.setText("Carrots755");
     }
 
     private void setSentInfo() {
@@ -82,13 +89,13 @@ public class LoginActivity extends BaseActivity {
             }
         });
 
-        usersViewModel.getUserData().observe(this, new Observer<String>() {
+        usersViewModel.getUserData().observe(this, new Observer<User>() {
             @Override
-            public void onChanged(String s) {
+            public void onChanged(User user) {
                 pbWait.setVisibility(View.INVISIBLE);
 
-                if (s != null) {
-                    loggedUser.setUsername(s);
+                if (user != null) {
+                    loggedUser = user;
                     rememberUserInfo();
 
                     Toast.makeText(getApplicationContext(), "Welcome!", Toast.LENGTH_SHORT).show();
@@ -96,6 +103,7 @@ public class LoginActivity extends BaseActivity {
                     Intent intentEnter = new Intent(getApplicationContext(), MainScreenActivity.class);
                     intentEnter.putExtra("user", loggedUser);
                     startActivityForResult(intentEnter, LOG_OUT_REQUEST_CODE);
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                 }
                 else
                     Toast.makeText(LoginActivity.this, "Error loading user information", Toast.LENGTH_SHORT).show();
@@ -111,6 +119,7 @@ public class LoginActivity extends BaseActivity {
             editor.putString("uUsername", loggedUser.getUsername());
             editor.putString("uEmail", loggedUser.getEmail());
             editor.putString("uPassword", loggedUser.getPassword());
+            editor.putString("uIdFs", loggedUser.getIdFs());
         }
 
         editor.apply();
@@ -125,6 +134,7 @@ public class LoginActivity extends BaseActivity {
                 Intent intentForgot = new Intent(getApplicationContext(), ForgotPasswordActivity.class);
                 intentForgot.putExtra("email", sEmail);
                 startActivity(intentForgot);
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             }
         });
 
@@ -138,6 +148,7 @@ public class LoginActivity extends BaseActivity {
                 intentRegister.putExtra("email", sEmail);
                 intentRegister.putExtra("password", sPassword);
                 startActivity(intentRegister);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         });
 
@@ -164,10 +175,12 @@ public class LoginActivity extends BaseActivity {
                     user.setEmail(sEmail);
                     user.setPassword(sPassword);
 
-                    pbWait.setVisibility(View.VISIBLE);
+                    if (CheckInternetConnection.check(LoginActivity.this)) {
+                        pbWait.setVisibility(View.VISIBLE);
 
-                    loggedUser = user;
-                    usersViewModel.userDetailsRight(user);
+                        loggedUser = user;
+                        usersViewModel.userDetailsRight(user);
+                    }
                 }
             }
         });
@@ -177,6 +190,7 @@ public class LoginActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intentGoBack = new Intent(getApplicationContext(), StartActivity.class);
                 startActivity(intentGoBack);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         });
 
@@ -224,6 +238,7 @@ public class LoginActivity extends BaseActivity {
                 editor.putString("uUsername", "");
                 editor.putString("uEmail", "");
                 editor.putString("uPassword", "");
+                editor.putString("uIdFs", "");
                 editor.apply();
 
                 Intent intentLogOut = new Intent(getApplicationContext(), StartActivity.class);

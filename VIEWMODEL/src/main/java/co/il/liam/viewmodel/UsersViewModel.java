@@ -15,7 +15,7 @@ public class UsersViewModel extends AndroidViewModel {
 
     private MutableLiveData<Boolean> addedUser;
     private MutableLiveData<Boolean> userDetailsRight;
-    private MutableLiveData<String> userData;
+    private MutableLiveData<User> userData;
     private MutableLiveData<Boolean> userExists;
     private MutableLiveData<Boolean> changedPassword;
     private MutableLiveData<Boolean> addedBook;
@@ -38,7 +38,7 @@ public class UsersViewModel extends AndroidViewModel {
     public LiveData<Boolean> getUserDetailsRight() {
         return userDetailsRight;
     }
-    public LiveData<String> getUserData() {
+    public LiveData<User> getUserData() {
         return userData;
     }
     public LiveData<Boolean> getUserExists() {
@@ -69,9 +69,9 @@ public class UsersViewModel extends AndroidViewModel {
 
     public void findUserData(User user) {
         usersRepository.getUserData(user)
-                .addOnSuccessListener(s -> {
-                    userData.setValue(s); })
-                .addOnFailureListener(s -> {
+                .addOnSuccessListener(usr -> {
+                    userData.setValue(usr); })
+                .addOnFailureListener(usr -> {
                     userData.setValue(null); });
     }
 

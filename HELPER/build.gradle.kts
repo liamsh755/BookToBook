@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "co.il.liam.helper"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 24

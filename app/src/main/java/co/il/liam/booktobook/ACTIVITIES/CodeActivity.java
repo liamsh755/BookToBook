@@ -133,6 +133,7 @@ public class CodeActivity extends BaseActivity {
                 tvCodeTimer.setText("00:00");
                 Intent intentGoCode = new Intent(getApplicationContext(), StartActivity.class);
                 startActivity(intentGoCode);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
 
         }.start();
@@ -172,6 +173,7 @@ public class CodeActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intentGoBack = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intentGoBack);
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         });
 
@@ -193,6 +195,7 @@ public class CodeActivity extends BaseActivity {
                         Intent intentChangePassword = new Intent(getApplicationContext(), ChangePasswordActivity.class);
                         intentChangePassword.putExtra("email", recipientEmail);
                         startActivity(intentChangePassword);
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                     }
 
                     else {
@@ -515,6 +518,7 @@ public class CodeActivity extends BaseActivity {
                         forgotPasswordIntent.putExtra("email", recipientEmail);
                         forgotPasswordIntent.putExtra("code", 1);
                         startActivity(forgotPasswordIntent);
+                        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
                     }
                 });
 

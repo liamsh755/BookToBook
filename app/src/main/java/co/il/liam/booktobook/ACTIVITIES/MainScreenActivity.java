@@ -1,27 +1,23 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.constraintlayout.motion.widget.MotionLayout;
-import androidx.constraintlayout.utils.widget.MotionLabel;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.constraintlayout.widget.Guideline;
 import androidx.viewpager2.widget.CompositePageTransformer;
-import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
@@ -30,12 +26,21 @@ import java.util.List;
 import co.il.liam.booktobook.ADAPTERS.VPbuttonsAdapter;
 import co.il.liam.booktobook.R;
 import co.il.liam.booktobook.VPbuttonsItem;
+import co.il.liam.booktobook.CheckInternetConnection;
 import co.il.liam.model.User;
 
 public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter.ViewPagerButtonClickListener {
     private TextView tvMainNameDisplay;
     private ViewPager2 vpButtons;
     private ImageView ivLogout;
+    private View vMainTopGradient;
+    private View vMainBottomGradient;
+    private Guideline glMain15p;
+    private Guideline glMain50p;
+    private Guideline glMain85p;
+
+    private Handler handler;
+    
     private User loggedUser;
 
     @Override
@@ -46,7 +51,152 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
         initializeViews();
         setListeners();
         setButtons();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // Start the animation after 2 seconds
+                startOpeningAnimation();
+            }
+        }, 600);
+
+        //checks internet connection
+        CheckInternetConnection.check(this);
     }
+
+    private void startOpeningAnimation() {
+        vMainTopGradient.post(() -> {
+            float topViewInitialY = vMainTopGradient.getY();
+            float topViewTargetY = glMain15p.getY() - vMainTopGradient.getHeight();
+
+            float bottomViewInitialY = vMainBottomGradient.getY();
+            float bottomViewTargetY = glMain85p.getY();
+
+            ObjectAnimator topAnimator = ObjectAnimator.ofFloat(vMainTopGradient, "y", topViewInitialY, bottomViewTargetY);
+            topAnimator.setDuration(1000);
+
+            ObjectAnimator bottomAnimator = ObjectAnimator.ofFloat(vMainBottomGradient, "y", bottomViewInitialY, topViewTargetY);
+            bottomAnimator.setDuration(1000);
+
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(topAnimator, bottomAnimator);
+            animatorSet.start();
+
+            animatorSet.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    int milliseconds = 1000;
+
+                    fadeIn(tvMainNameDisplay, milliseconds);
+                    fadeIn(ivLogout, milliseconds);
+                    fadeIn(vpButtons, milliseconds);
+                }
+            });
+
+        });
+    }
+    private void startLeavingAnimation() {
+        vMainTopGradient.post(() -> {
+            // Get the positions of the guidelines
+            float guideline50pY = glMain50p.getY();
+
+            // Calculate the target positions for the top and bottom views
+            float topViewInitialY = vMainTopGradient.getY();
+            float topViewTargetY = guideline50pY;
+
+            float bottomViewInitialY = vMainBottomGradient.getY();
+            float bottomViewTargetY = guideline50pY - vMainBottomGradient.getHeight();
+
+            // Create the animators
+            ObjectAnimator topAnimator = ObjectAnimator.ofFloat(vMainTopGradient, "y", topViewInitialY, topViewTargetY);
+            topAnimator.setDuration(1000);
+
+            ObjectAnimator bottomAnimator = ObjectAnimator.ofFloat(vMainBottomGradient, "y", bottomViewInitialY, bottomViewTargetY);
+            bottomAnimator.setDuration(1000);
+
+            // Play the animations together
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(topAnimator, bottomAnimator);
+            animatorSet.start();
+
+            // Add listener to handle end of animation
+            animatorSet.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    setResult(Activity.RESULT_OK);
+                    finish();
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                }
+            });
+        });
+    }
+
+    private void startClosingAnimation(Intent intent) {
+        vMainTopGradient.post(() -> {
+            // Get the positions of the guidelines
+            float guideline50pY = glMain50p.getY();
+
+            // Calculate the target positions for the top and bottom views
+            float topViewInitialY = vMainTopGradient.getY();
+            float topViewTargetY = guideline50pY;
+
+            float bottomViewInitialY = vMainBottomGradient.getY();
+            float bottomViewTargetY = guideline50pY - vMainBottomGradient.getHeight();
+
+            // Create the animators
+            ObjectAnimator topAnimator = ObjectAnimator.ofFloat(vMainTopGradient, "y", topViewInitialY, topViewTargetY);
+            topAnimator.setDuration(1000);
+
+            ObjectAnimator bottomAnimator = ObjectAnimator.ofFloat(vMainBottomGradient, "y", bottomViewInitialY, bottomViewTargetY);
+            bottomAnimator.setDuration(1000);
+
+            // Play the animations together
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(topAnimator, bottomAnimator);
+            animatorSet.start();
+
+            // Add listener to handle end of animation
+            animatorSet.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    startActivity(intent);
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                }
+            });
+        });
+    }
+    private void fadeOutViewsAndIntent(Intent intent, int milliseconds) {
+        fadeOut(ivLogout, milliseconds);
+        fadeOut(vpButtons, milliseconds);
+        fadeOut(tvMainNameDisplay, milliseconds);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                startClosingAnimation(intent);
+            }
+        }, milliseconds);
+    }
+
+    private void fadeIn(View view, int Milliseconds) {
+        view.setVisibility(View.VISIBLE);
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(view, "alpha", 0f, 1f);
+        fadeIn.setDuration(Milliseconds);
+        fadeIn.start();
+    }
+    private void fadeOut(View view, int Milliseconds) {
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(view, "alpha", 1f, 0f);
+        fadeOut.setDuration(Milliseconds);
+        fadeOut.start();
+        fadeOut.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                view.setVisibility(View.GONE);
+            }
+        });
+
+    }
+
+
 
     private void setButtons() {
         List<VPbuttonsItem> vpButtonsItems = new ArrayList<>();
@@ -97,6 +247,13 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
         tvMainNameDisplay = findViewById(R.id.tvMainHello);
         vpButtons = findViewById(R.id.vpMainButtons);
         ivLogout = findViewById(R.id.ivLogOut);
+        vMainTopGradient = findViewById(R.id.vMainBottomGradient);
+        vMainBottomGradient = findViewById(R.id.vMainTopGradient);
+        glMain15p = findViewById(R.id.glMain15p);
+        glMain50p = findViewById(R.id.glMain50p);
+        glMain85p = findViewById(R.id.glMain85p);
+
+        handler = new Handler();
 
         setNameDisplay();
     }
@@ -123,8 +280,20 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
                 builder.setPositiveButton("Log out", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        setResult(Activity.RESULT_OK);
-                        finish();
+
+                        int milliseconds = 1000;
+
+                        fadeOut(ivLogout, milliseconds);
+                        fadeOut(vpButtons, milliseconds);
+                        fadeOut(tvMainNameDisplay, milliseconds);
+
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Start the animation after 2 seconds
+                                startLeavingAnimation();
+                            }
+                        }, milliseconds);
                     }
                 });
                 builder.setNegativeButton("Stay logged in", new DialogInterface.OnClickListener() {
@@ -145,23 +314,34 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
     public void onViewPagerButtonClicked(int position) {
         switch (position) {
             case 0:
-                int search = 1;
+                Intent searchIntent = new Intent(getApplicationContext(), SearchActivity.class);
+                searchIntent.putExtra("user", loggedUser);
+                fadeOutViewsAndIntent(searchIntent, 1000);
+
                 break;
             case 1:
-                int location = 1;
+                Intent locationIntent = new Intent(getApplicationContext(), LocationActivity.class);
+                locationIntent.putExtra("user", loggedUser);
+                fadeOutViewsAndIntent(locationIntent, 1000);
+
                 break;
             case 2:
-                int discover = 1;
+                Intent discoverIntent = new Intent(getApplicationContext(), DiscoverActivity.class);
+                discoverIntent.putExtra("user", loggedUser);
+                fadeOutViewsAndIntent(discoverIntent, 1000);
+
                 break;
             case 3:
                 Intent libraryIntent = new Intent(getApplicationContext(), LibraryActivity.class);
                 libraryIntent.putExtra("user", loggedUser);
-                startActivity(libraryIntent);
+                fadeOutViewsAndIntent(libraryIntent, 1000);
+
                 break;
             case 4:
                 Intent addIntent = new Intent(getApplicationContext(), AddActivity.class);
                 addIntent.putExtra("user", loggedUser);
-                startActivity(addIntent);
+                fadeOutViewsAndIntent(addIntent, 1000);
+
                 break;
             default:
                 Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();

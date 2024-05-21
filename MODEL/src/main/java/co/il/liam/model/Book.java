@@ -3,7 +3,9 @@ package co.il.liam.model;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 
-public class Book {
+import java.io.Serializable;
+
+public class Book extends BaseEntity implements Serializable {
 
     public enum Condition {
         PERFECT,
@@ -42,13 +44,16 @@ public class Book {
         GOTHIC,
         FUN
     }
+    private String userId;
+
     private String title;
     private String genre;
     private Condition condition;
     private Exchange exchange;
     private String author;
     private String description;
-    private Bitmap image;
+    private String image;
+    private String imageUrl;
 
     private int mainColor;
     private int secColor;
@@ -59,9 +64,11 @@ public class Book {
 
     public Book() {}
 
-    public Book(String title, String author, String description, String genre,                           //book details
-                Condition condition, Exchange exchange,  Bitmap image,                                   //trade details
+    public Book(String userId,
+                String title, String author, String description, String genre,                           //book details
+                Condition condition, Exchange exchange,  String image,                                   //trade details
                 int mainColor, int secColor, Height height, Width width, Decoration decorations, Font font) {    //layout details
+        this.userId = userId;
         this.title = title;
         this.genre = genre;
         this.author = author;
@@ -77,7 +84,8 @@ public class Book {
         this.font = font;
     }
 
-    public Book(String title, String author, Bitmap image,int mainColor, int secColor, Height height, Width width, Decoration decorations, Font font) {
+    public Book(String userId, String title, String author, String image,int mainColor, int secColor, Height height, Width width, Decoration decorations, Font font) {
+        this.userId = userId;
         this.title = title;
         this.author = author;
         this.image = image;
@@ -87,6 +95,14 @@ public class Book {
         this.width = width;
         this.decorations = decorations;
         this.font = font;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getTitle() {
@@ -137,12 +153,20 @@ public class Book {
         this.description = description;
     }
 
-    public Bitmap getImage() {
+    public String getImage() {
         return image;
     }
 
-    public void setImage(Bitmap image) {
+    public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public int getMainColor() {
