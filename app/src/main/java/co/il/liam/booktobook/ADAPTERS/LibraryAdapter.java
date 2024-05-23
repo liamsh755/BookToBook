@@ -30,7 +30,6 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
     private Context context;
     private int bookLayout;
     private Books books;
-    private List<Integer> itemLayouts;
 
     private OnItemClickListener listener;
     private OnItemLongClickListener longListener;

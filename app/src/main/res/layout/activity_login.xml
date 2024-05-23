@@ -45,71 +45,99 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.088" />
 
-    <EditText
-        android:id="@+id/etLoginEmail"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout22"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="68dp"
         android:layout_marginLeft="25dp"
         android:layout_marginRight="25dp"
-        android:background="@drawable/edittext_border"
-        android:drawableEnd="@drawable/email_logo"
-        android:ems="10"
-        android:fontFamily="@font/montserrat_alternates_light"
-        android:gravity="left|center_vertical"
         android:hint="enter your email"
-        android:inputType="textEmailAddress"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:textColor="#FAFAFA"
-        android:textColorHint="#AEAEAE"
+        android:textColorHint="#FFAEAEAE"
+        android:gravity="bottom"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvLogIn"
-        app:layout_constraintVertical_bias="0.192" />
+        app:layout_constraintVertical_bias="0.2">
 
-    <EditText
-        android:id="@+id/etLoginPassword"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etLoginEmail"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/edittext_border"
+            android:drawableEnd="@drawable/email_logo"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:gravity="left|center_vertical"
+            android:inputType="textEmailAddress"
+            android:maxLength="22"
+            android:paddingLeft="20dp"
+            android:paddingRight="13dp"
+            android:layout_marginTop="50dp"
+            android:textColor="#FAFAFA"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.4" />
+
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout2"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="68dp"
         android:layout_marginLeft="25dp"
         android:layout_marginRight="25dp"
-        android:background="@drawable/edittext_border"
-        android:drawableEnd="@drawable/eye_logo"
-        android:ems="10"
-        android:fontFamily="@font/montserrat_alternates_light"
-        android:gravity="left|center_vertical"
+        android:layout_marginTop="20dp"
         android:hint="enter your password"
-        android:inputType="textPassword"
-        android:maxLength="22"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:textColor="#FAFAFA"
         android:textColorHint="#FFAEAEAE"
+        android:gravity="bottom"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/etLoginEmail"
-        app:layout_constraintVertical_bias="0.086" />
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout22"
+        app:layout_constraintVertical_bias="0.0"
+        app:passwordToggleEnabled="true"
+        app:passwordToggleTint="#FAFAFA">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etLoginPassword"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/edittext_border"
+            android:fontFamily="@font/montserrat_alternates_light"
+            android:gravity="left|center_vertical"
+            android:inputType="textPassword"
+            android:maxLength="22"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:textColor="#FAFAFA"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.4" />
+
+
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:id="@+id/tvLoginForgot"
         android:layout_width="wrap_content"
         android:layout_height="34dp"
-        android:layout_marginBottom="256dp"
         android:fontFamily="@font/montserrat_alternates_light"
         android:gravity="center"
+        android:layout_marginTop="10dp"
         android:text="Forgot password?"
         android:textColor="#DADADA"
         android:textSize="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/etLoginPassword"
+        app:layout_constraintEnd_toEndOf="@+id/textInputLayout2"
         app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@+id/etLoginPassword"
-        app:layout_constraintTop_toBottomOf="@+id/etLoginPassword"
-        app:layout_constraintVertical_bias="0.126" />
+        app:layout_constraintStart_toStartOf="@+id/textInputLayout2"
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout2"
+        app:layout_constraintVertical_bias="0.0" />
 
     <ProgressBar
         android:id="@+id/pbLogin"
@@ -133,14 +161,17 @@
         android:text="Remember me"
         android:textColor="#DADADA"
         android:textSize="18dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/etLoginPassword"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnLoginConfirm"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/etLoginPassword"
-        app:layout_constraintTop_toBottomOf="@+id/etLoginPassword"
-        app:layout_constraintVertical_bias="0.571" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvLoginForgot"
+        app:layout_constraintVertical_bias="1" />
 
     <LinearLayout
+        android:id="@+id/linearLayout8"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
@@ -191,33 +222,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
-
-<!--    <com.google.android.material.textfield.TextInputLayout-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="70dp"-->
-<!--        android:layout_marginLeft="25dp"-->
-<!--        android:layout_marginRight="25dp"-->
-<!--        android:gravity="center"-->
-<!--        android:hint="enter your password"-->
-<!--        android:textColorHint="#AEAEAE"-->
-<!--        app:layout_constraintBottom_toTopOf="@+id/etLoginEmail"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@+id/tvLogIn"-->
-<!--        app:passwordToggleEnabled="true">-->
-
-<!--        <com.google.android.material.textfield.TextInputEditText-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="50dp"-->
-<!--            android:layout_marginTop="50dp"-->
-<!--            android:background="@drawable/edittext_border"-->
-<!--            android:fontFamily="@font/montserrat_alternates_light"-->
-<!--            android:maxLength="22"-->
-<!--            android:paddingLeft="20dp"-->
-<!--            android:text="lalala"-->
-<!--            android:textColor="#FAFAFA"-->
-<!--            android:textColorHint="#AEAEAE" />-->
-<!--    </com.google.android.material.textfield.TextInputLayout>-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

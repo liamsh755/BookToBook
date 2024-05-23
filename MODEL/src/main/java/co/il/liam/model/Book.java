@@ -3,6 +3,8 @@ package co.il.liam.model;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 
+import com.google.firebase.firestore.Exclude;
+
 import java.io.Serializable;
 
 public class Book extends BaseEntity implements Serializable {
@@ -153,10 +155,12 @@ public class Book extends BaseEntity implements Serializable {
         this.description = description;
     }
 
+    @Exclude
     public String getImage() {
         return image;
     }
 
+    @Exclude
     public void setImage(String image) {
         this.image = image;
     }

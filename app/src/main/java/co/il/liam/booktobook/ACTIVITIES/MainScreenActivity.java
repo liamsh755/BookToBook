@@ -7,8 +7,10 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -51,16 +53,21 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
         initializeViews();
         setListeners();
         setButtons();
+        waitBeforeOpening(600);
+
+        //checks internet connection
+        CheckInternetConnection.check(this);
+    }
+
+    //animations
+    private void waitBeforeOpening(int milliseconds) {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 // Start the animation after 2 seconds
                 startOpeningAnimation();
             }
-        }, 600);
-
-        //checks internet connection
-        CheckInternetConnection.check(this);
+        }, milliseconds);
     }
 
     private void startOpeningAnimation() {
@@ -158,8 +165,9 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
             animatorSet.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    startActivity(intent);
+                    startActivityForResult(intent, 1);
                     overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                    Log.d("qqq", "intent done");
                 }
             });
         });
@@ -206,12 +214,14 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
         vpButtonsItems.add(new VPbuttonsItem(R.drawable.button_discover, "Books for you"));
         vpButtonsItems.add(new VPbuttonsItem(R.drawable.button_library, "My library"));
         vpButtonsItems.add(new VPbuttonsItem(R.drawable.button_add, "Add book"));
+        vpButtonsItems.add(new VPbuttonsItem(R.drawable.button_chat, "My chats"));
 
         vpButtons.setAdapter(new VPbuttonsAdapter(vpButtonsItems, vpButtons, MainScreenActivity.this, this));
 
         vpButtons.setClipToPadding(false);
         vpButtons.setClipChildren(false);
         vpButtons.setOffscreenPageLimit(3);
+        vpButtons.setCurrentItem(vpButtonsItems.size() - 3, false);
         vpButtons.getChildAt(0).setOverScrollMode(View.OVER_SCROLL_NEVER);
 
         CompositePageTransformer compositePageTransformer = new CompositePageTransformer();
@@ -235,8 +245,8 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
                     vpButtons.setCurrentItem(vpButtonsItems.size() - 2, false);
 
                 }
-                else if (position == vpButtonsItems.size() - 1) {
-                    vpButtons.setCurrentItem(1, false);
+                else if (position == vpButtonsItems.size()) {
+                    vpButtons.setCurrentItem(350, false);
                 }
             }
         });
@@ -309,10 +319,20 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
         });
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == Activity.RESULT_OK) {
+                waitBeforeOpening(600);
+            }
+        }
+    }
+
 
     @Override
     public void onViewPagerButtonClicked(int position) {
-        switch (position) {
+        switch (position % 6) {
             case 0:
                 Intent searchIntent = new Intent(getApplicationContext(), SearchActivity.class);
                 searchIntent.putExtra("user", loggedUser);
@@ -334,13 +354,19 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
             case 3:
                 Intent libraryIntent = new Intent(getApplicationContext(), LibraryActivity.class);
                 libraryIntent.putExtra("user", loggedUser);
-                fadeOutViewsAndIntent(libraryIntent, 1000);
+                fadeOutViewsAndIntent(libraryIntent, 500);
 
                 break;
             case 4:
                 Intent addIntent = new Intent(getApplicationContext(), AddActivity.class);
                 addIntent.putExtra("user", loggedUser);
                 fadeOutViewsAndIntent(addIntent, 1000);
+
+                break;
+            case 5:
+                Intent chatIntent = new Intent(getApplicationContext(), ChatListActivity.class);
+                chatIntent.putExtra("user", loggedUser);
+                fadeOutViewsAndIntent(chatIntent, 1000);
 
                 break;
             default:

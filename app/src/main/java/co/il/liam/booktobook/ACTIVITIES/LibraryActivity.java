@@ -16,7 +16,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 import co.il.liam.booktobook.ADAPTERS.LibraryAdapter;
@@ -32,6 +31,7 @@ public class LibraryActivity extends BaseActivity {
     private TextView tvLibraryGoBack;
     private RecyclerView rvLibrary;
     private LibraryAdapter libraryAdapter;
+    private AlertDialog loadingBooksDialog;
     private Books library;
 
     private User loggedUser;
@@ -46,8 +46,8 @@ public class LibraryActivity extends BaseActivity {
         initializeViews();
         setListeners();
         setObservers();
-        setLibrary();
         setRecyclerView();
+        setLibrary();
     }
 
     private void setObservers() {
@@ -55,11 +55,19 @@ public class LibraryActivity extends BaseActivity {
         booksViewModel.getFoundBooks().observe(this, new Observer<Books>() {
             @Override
             public void onChanged(Books books) {
+                loadingBooksDialog.dismiss();
+
                 if (books != null) {
-                    //books = addBooks(books);
-                    books.reverseContents();   //since the recyclerview and book xml-s are flipped for books to touch the shelf
-                                          // you need to reverse the order of the books so that it looks organized on the shelf
-                    library = books;
+                    if (!books.isEmpty()) {
+                        books.reverseContents();   //since the recyclerview and book xml-s are flipped for books to touch the shelf
+                        // you need to reverse the order of the books so that it looks organized on the shelf
+                        library = books;
+                        libraryAdapter.setBooks(books);
+                    }
+
+                    else {
+                        showDialogNoBooks();
+                    }
                 }
                 else {
                     Toast.makeText(getApplicationContext(), "Books not found!!!", Toast.LENGTH_SHORT).show();
@@ -68,9 +76,43 @@ public class LibraryActivity extends BaseActivity {
                     defaultBooks.reverseContents();
 
                     library = defaultBooks;
+                    libraryAdapter.setBooks(defaultBooks);
                 }
             }
         });
+
+        booksViewModel.getDeletedBook().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    Toast.makeText(getApplicationContext(), "Deleted book", Toast.LENGTH_SHORT).show();
+                    libraryAdapter.setBooks(library);
+                    if (library.isEmpty()){
+                        showDialogNoBooks();
+                    }
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "Couldn't delete book", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+    public void showDialogNoBooks() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
+        builder.setTitle("Wow so empty...");
+        builder.setMessage("You have no books.");
+        builder.setCancelable(false);
+        builder.setPositiveButton("Go back", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                setResult(RESULT_OK);
+                finish();
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     public int getRandomColor() {
@@ -127,7 +169,7 @@ public class LibraryActivity extends BaseActivity {
 
 
     public Books addBooks(Books books) {
-        String userId = loggedUser.getIdFs();
+        String userId = "CLurT7kqcbpqqcGR5dq4";
         books.add(new Book(userId, "The secret garden", "Graham Rust",                      BitMapHelper.encodeTobase64(BitmapFactory.decodeResource(this.getResources(), R.drawable.books_background)), Color.parseColor("#FDA802"), Color.parseColor("#4A9FAE"), Book.Height.TALL, Book.Width.THICK, getRandomDec(), getRandomFont()));
         books.add(new Book(userId, "I'm glad my mom died", "Jennette McCurdy",              BitMapHelper.encodeTobase64(BitmapFactory.decodeResource(this.getResources(), R.drawable.books_background)), Color.parseColor("#BC4C59"), Color.parseColor("#8D26EA"), Book.Height.MEDIUM, Book.Width.THICK, getRandomDec(), getRandomFont()));
         books.add(new Book(userId, "Little fires everywhere", "Celeste Ng",                 BitMapHelper.encodeTobase64(BitmapFactory.decodeResource(this.getResources(), R.drawable.books_background)), getRandomColor(), getRandomColor(), Book.Height.SHORT, Book.Width.THICK, getRandomDec(), getRandomFont()));
@@ -143,9 +185,19 @@ public class LibraryActivity extends BaseActivity {
     private void setLibrary()  {
         Intent userInfoIntent = getIntent();
         loggedUser = (User) userInfoIntent.getSerializableExtra("user");
+
         library = new Books();
 
         if (CheckInternetConnection.check(this)) {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
+            builder.setTitle("Loading books...");
+            builder.setMessage("This will only take a few seconds");
+            builder.setCancelable(false);
+
+            loadingBooksDialog = builder.create();
+            loadingBooksDialog.show();
+
             booksViewModel.getAll(loggedUser);
         }
     }
@@ -169,16 +221,16 @@ public class LibraryActivity extends BaseActivity {
                 builder.setTitle(book.getTitle());
                 builder.setMessage("What action would you like to do?");
                 builder.setCancelable(true);
-                builder.setPositiveButton("Edit book", new DialogInterface.OnClickListener() {
+                builder.setNegativeButton("Edit book", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Toast.makeText(getApplicationContext(), "edit", Toast.LENGTH_SHORT).show();
                     }
                 });
-                builder.setNegativeButton("Delete book", new DialogInterface.OnClickListener() {
+                builder.setPositiveButton("Delete book", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getApplicationContext(), "remove", Toast.LENGTH_SHORT).show();
+                        startDeletingBook(book);
                     }
                 });
 
@@ -189,12 +241,36 @@ public class LibraryActivity extends BaseActivity {
             }
         };
 
-        Books libraryTest = addBooks(new Books());
+        Books libraryTest = new Books();
         libraryTest.reverseContents();
 
         libraryAdapter = new LibraryAdapter(this, R.layout.book_thick_tall, libraryTest, listener, longListener);
         rvLibrary.setAdapter(libraryAdapter);
         rvLibrary.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+    }
+
+    private void startDeletingBook(Book book) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
+        builder.setTitle(book.getTitle());
+        builder.setMessage("Are you sure you want to delete this book?");
+        builder.setCancelable(true);
+        builder.setNegativeButton("Keep book ", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        builder.setPositiveButton("Delete book", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (CheckInternetConnection.check(LibraryActivity.this)) {
+                    library.remove(book);
+                    booksViewModel.deleteBook(book);
+                }
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override
@@ -208,7 +284,9 @@ public class LibraryActivity extends BaseActivity {
         tvLibraryGoBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                setResult(RESULT_OK);
                 finish();
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             }
         });
     }

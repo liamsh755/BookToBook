@@ -33,6 +33,10 @@ public class VPbuttonsAdapter extends RecyclerView.Adapter<VPbuttonsAdapter.view
         this.vpWidget = vpWidget;
         this.context = context;
         this.clickListener = clickListener;
+
+        for (int i = 0; i < 6; i++) {
+            vpItems.addAll(vpItems);
+        }
     }
 
     @NonNull
@@ -50,6 +54,7 @@ public class VPbuttonsAdapter extends RecyclerView.Adapter<VPbuttonsAdapter.view
         if (position == vpItems.size() - 2) {
             vpWidget.post(runnable);
         }
+
 
         holder.ivButton.setOnTouchListener(new View.OnTouchListener() {
             private float startX, startY;

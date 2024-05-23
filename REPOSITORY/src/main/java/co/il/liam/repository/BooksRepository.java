@@ -1,6 +1,7 @@
 package co.il.liam.repository;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -13,9 +14,12 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import co.il.liam.helper.BitMapHelper;
@@ -82,75 +86,90 @@ public class BooksRepository {
         return successfullyAdd.getTask();
     }
 
-    public Task<Books> getAll(User user) {
-        TaskCompletionSource<Books> foundBooks = new TaskCompletionSource<>();
+    public Task<Boolean> deleteBook(Book book) {
+        TaskCompletionSource deletedBooK = new TaskCompletionSource<>();
 
-        Books books = new Books();
-        String userId = user.getIdFs();
+        DocumentReference document = collection.document(book.getIdFs());
 
-        collection.whereEqualTo("userId", userId).get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+        FireBaseStorage.deleteFromStorage(book.getIdFs(), path)
+                .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                     @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                        List<Task<Void>> storageTasks = new ArrayList<>();
-
-                        if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()){
-                            for (DocumentSnapshot document : queryDocumentSnapshots ) {
-                                Book book = document.toObject(Book.class);
-                                if (book != null) {
-
-                                    TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
-                                    storageTasks.add(taskCompletionSource.getTask());
-
-                                    FireBaseStorage.loadFromStorage(book.getIdFs(), path)
-                                            .addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                                                @Override
-                                                public void onSuccess(byte[] bytes) {
-                                                    book.setImage(BitMapHelper.encodeTobase64(BitMapHelper.byteArrayToBitmap(bytes)));
-                                                    books.add(book);
-                                                    taskCompletionSource.setResult(null);
-                                                }
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    book.setImage("");
-                                                    books.add(book);
-                                                    taskCompletionSource.setResult(null);
-                                                }
-                                            });
-                                }
-
-                            }
-
-                            Tasks.whenAll(storageTasks)
-                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                        @Override
-                                        public void onSuccess(Void unused) {
-                                            foundBooks.setResult(books);
-                                        }
-                                    })
-                                    .addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            foundBooks.setResult(null);
-                                        }
-                                    });
-                        }
-
-                        else {
-                            foundBooks.setResult(null);
-                        }
+                    public void onSuccess(Boolean aBoolean) {
+                        document.delete()
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        deletedBooK.setResult(true);
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        deletedBooK.setResult(false);
+                                    }
+                                });
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        foundBooks.setResult(null);
+                        deletedBooK.setResult(false);
                     }
                 });
 
+        return deletedBooK.getTask();
+    }
+
+    public Task<Books> getAll(User user){
+        TaskCompletionSource<Books> foundBooks = new TaskCompletionSource<>();
+        Books books = new Books();
+        String userId = user.getIdFs();
+
+        collection.whereEqualTo("userId", userId).get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Task<Void>> storageTasks = new ArrayList<>();
+
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Book book = document.toObject(Book.class);
+                        Log.d("qqq", "found book: " + book.getExchange().toString() + ", " + book.getCondition().toString());
+                        if (book != null) {
+                            TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
+                            storageTasks.add(taskCompletionSource.getTask());
+
+                            FireBaseStorage.loadFromStorage(book.getIdFs(), path)
+                                    .addOnSuccessListener(bytes -> {
+                                        book.setImage(BitMapHelper.encodeTobase64(BitMapHelper.byteArrayToBitmap(bytes)));
+                                        books.add(book);
+                                        Log.d("qqq", "added book " + books.size() + " : " + book.getExchange().toString() + ", " + book.getCondition().toString());
+                                        taskCompletionSource.setResult(null);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        book.setImage("");
+                                        books.add(book);
+                                        taskCompletionSource.setResult(null);
+                                    });
+                        }
+                    }
+
+                    // Wait for all storage tasks to complete
+                    Tasks.whenAll(storageTasks)
+                            .addOnSuccessListener(aVoid -> {
+                                Collections.sort(books, (book1, book2) -> book1.getTitle().compareTo(book2.getTitle()));
+                                foundBooks.setResult(books);
+                            })
+                            .addOnFailureListener(e -> {
+                                // Handle failure to load pictures
+                                foundBooks.setResult(null);
+                                foundBooks.setException(e);
+                            });
+                })
+
+
+                .addOnFailureListener(e -> {
+                    // Handle failure to retrieve members from Firestore
+                    foundBooks.setResult(null);
+                    foundBooks.setException(e);
+                });
 
         return foundBooks.getTask();
     }

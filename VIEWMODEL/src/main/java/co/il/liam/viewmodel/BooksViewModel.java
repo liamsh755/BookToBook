@@ -16,6 +16,7 @@ public class BooksViewModel extends AndroidViewModel {
 
     private MutableLiveData<Boolean> addedBook;
     private MutableLiveData<Books> foundBooks;
+    private MutableLiveData<Boolean> deletedBook;
 
     public BooksViewModel(@NonNull Application application) {
         super(application);
@@ -23,6 +24,7 @@ public class BooksViewModel extends AndroidViewModel {
         booksRepository = new BooksRepository(application);
         addedBook = new MutableLiveData<>();
         foundBooks = new MutableLiveData<>();
+        deletedBook = new MutableLiveData<>();
     }
 
     public MutableLiveData<Boolean> getAddedBook() {
@@ -31,6 +33,10 @@ public class BooksViewModel extends AndroidViewModel {
 
     public MutableLiveData<Books> getFoundBooks() {
         return foundBooks;
+    }
+
+    public MutableLiveData<Boolean> getDeletedBook() {
+        return deletedBook;
     }
 
     public void addBook(Book book){
@@ -47,5 +53,13 @@ public class BooksViewModel extends AndroidViewModel {
                     foundBooks.setValue(books); })
                 .addOnFailureListener(books -> {
                    foundBooks.setValue(null); });
+    }
+
+    public void deleteBook(Book book) {
+        booksRepository.deleteBook(book)
+                .addOnSuccessListener(aBoolean -> {
+                    deletedBook.setValue(aBoolean); })
+                .addOnFailureListener(aBoolean -> {
+                    deletedBook.setValue(false);  });
     }
 }

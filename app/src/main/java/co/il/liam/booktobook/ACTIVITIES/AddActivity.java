@@ -152,7 +152,9 @@ public class AddActivity extends BaseActivity {
                 pbAddWait.setVisibility(View.INVISIBLE);
                 if (aBoolean) {
                     Toast.makeText(getApplicationContext(), "Added book", Toast.LENGTH_SHORT).show();
+                    setResult(Activity.RESULT_OK);
                     finish();
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                 }
                 else {
                     Toast.makeText(getApplicationContext(), "Error adding book, Please contact support", Toast.LENGTH_SHORT).show();
@@ -196,7 +198,6 @@ public class AddActivity extends BaseActivity {
         colors.add("Black");
         colors.add("Gray");
         colors.add("White");
-        colors.add("Random");
 
         //Main Colors
         ArrayAdapter<String> mainColorsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, colors);
@@ -600,7 +601,9 @@ public class AddActivity extends BaseActivity {
         tvAddGoBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                setResult(RESULT_OK);
                 finish();
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             }
         });
 
@@ -745,25 +748,30 @@ public class AddActivity extends BaseActivity {
         String description = etAddDescription.getText().toString();
         String genre = etAddGenre.getText().toString();
 
+        Boolean valid = true;
+
         if (title.isEmpty()) {
             etAddTitle.setError("Enter the title");
-            return false;
+            valid = false;
         }
         else if (author.isEmpty()) {
             etAddAuthor.setError("Enter the author");
-            return false;
+            valid = false;
         }
         else if (description.isEmpty()) {
             etAddDescription.setError("Enter the description");
-            return false;
+            valid = false;
         }
         else if (genre.isEmpty()) {
             etAddGenre.setError("Enter the genre");
-            return false;
+            valid = false;
         }
-        else {
-            return true;
+
+        if (!valid) {
+            Toast.makeText(getApplicationContext(), "Please enter all info", Toast.LENGTH_SHORT).show();
         }
+
+        return valid;
     }
 
 
@@ -829,27 +837,11 @@ public class AddActivity extends BaseActivity {
 
         Integer color;
 
-        if (lowercaseInput.equals("random")) {
-            if (Objects.equals(context, "bookMainColor")) {
-                color = (int) cvBookBackground.getTag(androidx.appcompat.R.attr.background);
-            }
-            else if (Objects.equals(context, "bookSecColor")) {
-                color = (int) vBookDec2.getTag(androidx.appcompat.R.attr.background);
-            }
-            else {
-                int randomIndex = new Random().nextInt(colorMap.size());
-                color = (Integer) colorMap.values().toArray()[randomIndex];
-            }
-        }
+        color = colorMap.get(lowercaseInput);
 
-        else {
-            color = colorMap.get(lowercaseInput);
-
-            // Handle cases where the input doesn't match a color name
-            if (color == null) {
-                color = colorMap.get("gold"); //default color for books
-            }
-
+        // Handle cases where the input doesn't match a color name
+        if (color == null) {
+            color = colorMap.get("gold"); //default color for books
         }
 
         return color != null ? color : 0;

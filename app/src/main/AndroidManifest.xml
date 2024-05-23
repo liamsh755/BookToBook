@@ -19,6 +19,9 @@
         android:theme="@style/FullScreenTheme"
         tools:targetApi="31">
         <activity
+            android:name=".ACTIVITIES.ChatListActivity"
+            android:exported="false" />
+        <activity
             android:name=".ACTIVITIES.DiscoverActivity"
             android:exported="false" />
         <activity
@@ -29,9 +32,6 @@
             android:exported="false" />
         <activity
             android:name=".ACTIVITIES.ChatActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ACTIVITIES.ChatListActivity"
             android:exported="false" />
         <activity
             android:name=".ACTIVITIES.AddActivity"
