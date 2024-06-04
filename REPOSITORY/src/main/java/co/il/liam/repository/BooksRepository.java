@@ -173,4 +173,58 @@ public class BooksRepository {
 
         return foundBooks.getTask();
     }
+
+    public Task<Books> getAllOtherBooks(User user){
+        TaskCompletionSource<Books> foundBooks = new TaskCompletionSource<>();
+        Books books = new Books();
+        String userId = user.getIdFs();
+
+        collection.whereNotEqualTo("userId", userId).get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Task<Void>> storageTasks = new ArrayList<>();
+
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Book book = document.toObject(Book.class);
+                        Log.d("qqq", "found book: " + book.getExchange().toString() + ", " + book.getCondition().toString());
+                        if (book != null) {
+                            TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
+                            storageTasks.add(taskCompletionSource.getTask());
+
+                            FireBaseStorage.loadFromStorage(book.getIdFs(), path)
+                                    .addOnSuccessListener(bytes -> {
+                                        book.setImage(BitMapHelper.encodeTobase64(BitMapHelper.byteArrayToBitmap(bytes)));
+                                        books.add(book);
+                                        Log.d("qqq", "added book " + books.size() + " : " + book.getExchange().toString() + ", " + book.getCondition().toString());
+                                        taskCompletionSource.setResult(null);
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        book.setImage("");
+                                        books.add(book);
+                                        taskCompletionSource.setResult(null);
+                                    });
+                        }
+                    }
+
+                    // Wait for all storage tasks to complete
+                    Tasks.whenAll(storageTasks)
+                            .addOnSuccessListener(aVoid -> {
+                                Collections.sort(books, (book1, book2) -> book1.getTitle().compareTo(book2.getTitle()));
+                                foundBooks.setResult(books);
+                            })
+                            .addOnFailureListener(e -> {
+                                // Handle failure to load pictures
+                                foundBooks.setResult(null);
+                                foundBooks.setException(e);
+                            });
+                })
+
+
+                .addOnFailureListener(e -> {
+                    // Handle failure to retrieve members from Firestore
+                    foundBooks.setResult(null);
+                    foundBooks.setException(e);
+                });
+
+        return foundBooks.getTask();
+    }
 }

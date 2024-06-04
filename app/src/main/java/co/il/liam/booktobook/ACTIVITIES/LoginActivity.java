@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -14,7 +13,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -80,7 +78,7 @@ public class LoginActivity extends BaseActivity {
             @Override
             public void onChanged(Boolean aBoolean) {
                 if (aBoolean) {
-                    usersViewModel.findUserData(loggedUser);
+                    usersViewModel.findUserDataByEmail(loggedUser);
                 }
                 else {
                     Toast.makeText(LoginActivity.this, "Account not found. Please sign up if you don't have an account.", Toast.LENGTH_SHORT).show();
@@ -89,7 +87,7 @@ public class LoginActivity extends BaseActivity {
             }
         });
 
-        usersViewModel.getUserData().observe(this, new Observer<User>() {
+        usersViewModel.getUserDataByEmail().observe(this, new Observer<User>() {
             @Override
             public void onChanged(User user) {
                 pbWait.setVisibility(View.INVISIBLE);
@@ -120,6 +118,8 @@ public class LoginActivity extends BaseActivity {
             editor.putString("uEmail", loggedUser.getEmail());
             editor.putString("uPassword", loggedUser.getPassword());
             editor.putString("uIdFs", loggedUser.getIdFs());
+            editor.putString("uState", loggedUser.getState());
+            editor.putString("uCity", loggedUser.getCity());
         }
 
         editor.apply();
@@ -239,6 +239,8 @@ public class LoginActivity extends BaseActivity {
                 editor.putString("uEmail", "");
                 editor.putString("uPassword", "");
                 editor.putString("uIdFs", "");
+                editor.putString("uState", "");
+                editor.putString("uCity", "");
                 editor.apply();
 
                 Intent intentLogOut = new Intent(getApplicationContext(), StartActivity.class);

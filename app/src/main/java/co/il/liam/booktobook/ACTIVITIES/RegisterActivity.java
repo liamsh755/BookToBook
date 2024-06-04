@@ -1,17 +1,40 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import co.il.liam.booktobook.CheckInternetConnection;
@@ -22,12 +45,20 @@ import co.il.liam.viewmodel.UsersViewModel;
 public class RegisterActivity extends BaseActivity {
     private EditText etRegUsername;
     private EditText etRegEmail;
+    private TextView tvRegState;
+    private TextView tvRegCity;
+    private ImageView btnRegSelectLocation;
+    private ImageView ivRegInfo;
     private EditText etRegPassword;
     private EditText etRegRePassword;
     private Button btnRegRegister;
     private ProgressBar pbWait;
     private TextView tvLoginGo;
     private TextView tvRegGoBack;
+    private TextView tvRegStateTitle;
+
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private final int REQUEST_LOCATION_PERMISSION = 50;
 
     private UsersViewModel usersViewModel;
 
@@ -43,6 +74,7 @@ public class RegisterActivity extends BaseActivity {
         setObservers();
         setSentInfo();
     }
+
 
     private void setSentInfo() {
         Intent sentInfoIntent = getIntent();
@@ -60,13 +92,11 @@ public class RegisterActivity extends BaseActivity {
             @Override
             public void onChanged(Boolean aBoolean) {
                 pbWait.setVisibility(View.INVISIBLE);
-                if (aBoolean){
-                    Toast.makeText(RegisterActivity.this, "User saved successfully", Toast.LENGTH_SHORT).show();
+                if (aBoolean) {
                     finish();
                     overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-                }
-                else {
-                    Toast.makeText(RegisterActivity.this, "Registration failed", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(RegisterActivity.this, "Registration failed, Contact support", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -77,12 +107,19 @@ public class RegisterActivity extends BaseActivity {
     protected void initializeViews() {
         etRegUsername = findViewById(R.id.etRegUsername);
         etRegEmail = findViewById(R.id.etRegEmail);
+        tvRegState = findViewById(R.id.tvRegState);
+        tvRegCity = findViewById(R.id.tvRegCity);
+        btnRegSelectLocation = findViewById(R.id.btnRegSelectLocation);
+        ivRegInfo = findViewById(R.id.ivRegInfo);
         etRegPassword = findViewById(R.id.etRegPassword);
         etRegRePassword = findViewById(R.id.etRegRePassword);
         btnRegRegister = findViewById(R.id.btnRegRegister);
         pbWait = findViewById(R.id.pbRegister);
         tvLoginGo = findViewById(R.id.tvRegGo);
         tvRegGoBack = findViewById(R.id.tvRegGoBack);
+        tvRegStateTitle = findViewById(R.id.tvRegStateTitle);
+
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
         newUser = new User();
     }
@@ -97,10 +134,14 @@ public class RegisterActivity extends BaseActivity {
                     String sEmail = String.valueOf(etRegEmail.getText());
                     String sUsername = String.valueOf(etRegUsername.getText());
                     String sPassword = String.valueOf(etRegPassword.getText());
+                    String sState = String.valueOf(tvRegState.getText());
+                    String sCity = String.valueOf(tvRegCity.getText());
 
                     newUser.setEmail(sEmail);
                     newUser.setUsername(sUsername);
                     newUser.setPassword(sPassword);
+                    newUser.setState(sState);
+                    newUser.setCity(sCity);
 
                     if (CheckInternetConnection.check(RegisterActivity.this)) {
                         pbWait.setVisibility(View.VISIBLE);
@@ -133,6 +174,142 @@ public class RegisterActivity extends BaseActivity {
                 overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         });
+
+        ivRegInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(RegisterActivity.this);
+                builder.setTitle("My location??");
+                builder.setMessage("Worry not! The location selector only checks your state and city, nothing else.\n" +
+                        "This information is necessary for other users and for you to use the app properly.");
+                builder.setCancelable(true);
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        });
+
+        btnRegSelectLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("qqq", "clicked button");
+
+                if (checkLocationPermission()) {
+                    Log.d("qqq", "permission found");
+                    checkGPSandNetworkEnabled();
+
+                    Log.d("qqq", "gps found");
+                    getLocationVariable();
+                }
+                else {
+                    Log.d("qqq", "requesting permission");
+                    requestLocationPermission();
+                }
+            }
+        });
+    }
+
+    private void checkGPSandNetworkEnabled() {
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        boolean gpsEnabled = false;
+        boolean networkEnabled = false;
+
+        try {
+            gpsEnabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            networkEnabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (!gpsEnabled || !networkEnabled) {
+
+            new AlertDialog.Builder(RegisterActivity.this)
+                    .setTitle("Enable GPS service")
+                    .setMessage("Your GPS is disabled, do you want to enable it?")
+                    .setCancelable(false)
+                    .setPositiveButton("Enable", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+
+        }
+    }
+
+    private boolean checkLocationPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestLocationPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_LOCATION_PERMISSION);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_LOCATION_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getLocationVariable();
+            } else {
+                Toast.makeText(getApplicationContext(), "Please allow the app to check your location", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getLocationVariable() {
+        try {
+            Log.d("qqq", "founding location");
+
+            fusedLocationProviderClient.getLastLocation()
+                    .addOnCompleteListener(new OnCompleteListener<Location>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Location> task) {
+                            if (task.isSuccessful() && task.getResult() != null) {
+                                Log.d("qqq", "found location");
+                                Location location = task.getResult();
+                                getLocationInfo(location);
+                            }
+                            else {
+                                Log.d("qqq", "failed to find location");
+                            }
+                        }
+                    });
+
+        }
+        catch (Exception e) {
+            Log.d("qqq", "failed to find location");
+            e.printStackTrace();
+        }
+    }
+
+    private void getLocationInfo(Location location) {
+        try {
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                String stateName = addresses.get(0).getCountryName();
+                String cityName = addresses.get(0).getLocality();
+
+                tvRegState.setText(stateName);
+                tvRegCity.setText(cityName);
+            } else {
+                Log.d("qqq", "info not found");
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            Log.d("qqq", "geocoder failed");
+        }
     }
 
     private boolean Valid() {
@@ -178,6 +355,10 @@ public class RegisterActivity extends BaseActivity {
             etRegEmail.setError("Invalid email");
             return false;
         }
+        else if (tvRegState.getText().equals("")) {
+            tvRegStateTitle.setError("Find your location");
+            return false;
+        }
 
         return true;
     }
@@ -191,4 +372,5 @@ public class RegisterActivity extends BaseActivity {
     public boolean containsDigit(String str) {
         return str.chars().anyMatch(Character::isDigit);
     }
+
 }

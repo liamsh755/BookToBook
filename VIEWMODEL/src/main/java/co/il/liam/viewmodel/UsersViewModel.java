@@ -6,7 +6,6 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import co.il.liam.model.Book;
 import co.il.liam.model.User;
 import co.il.liam.repository.UsersRepository;
 
@@ -15,10 +14,10 @@ public class UsersViewModel extends AndroidViewModel {
 
     private MutableLiveData<Boolean> addedUser;
     private MutableLiveData<Boolean> userDetailsRight;
-    private MutableLiveData<User> userData;
+    private MutableLiveData<User> userDataByEmail;
+    private MutableLiveData<User> userDataByIdFs;
     private MutableLiveData<Boolean> userExists;
     private MutableLiveData<Boolean> changedPassword;
-    private MutableLiveData<Boolean> addedBook;
 
     public UsersViewModel(Application application) {
         super(application);
@@ -26,10 +25,10 @@ public class UsersViewModel extends AndroidViewModel {
         usersRepository = new UsersRepository(application);
         addedUser = new MutableLiveData<>();
         userDetailsRight = new MutableLiveData<>();
-        userData = new MutableLiveData<>();
+        userDataByEmail = new MutableLiveData<>();
+        userDataByIdFs = new MutableLiveData<>();
         userExists = new MutableLiveData<>();
         changedPassword = new MutableLiveData<>();
-        addedBook = new MutableLiveData<>();
     }
 
     public LiveData<Boolean> getAddedUser() {
@@ -38,17 +37,17 @@ public class UsersViewModel extends AndroidViewModel {
     public LiveData<Boolean> getUserDetailsRight() {
         return userDetailsRight;
     }
-    public LiveData<User> getUserData() {
-        return userData;
+    public LiveData<User> getUserDataByEmail() {
+        return userDataByEmail;
+    }
+    public LiveData<User> getUserDataByIdFs() {
+        return userDataByIdFs;
     }
     public LiveData<Boolean> getUserExists() {
         return userExists;
     }
     public LiveData<Boolean> getChangedPassword() {
         return changedPassword;
-    }
-    public LiveData<Boolean> getAddedBook() {
-        return addedBook;
     }
 
     public void add(User user) {
@@ -67,12 +66,20 @@ public class UsersViewModel extends AndroidViewModel {
                     userDetailsRight.setValue(false); });
     }
 
-    public void findUserData(User user) {
-        usersRepository.getUserData(user)
+    public void findUserDataByEmail(User user) {
+        usersRepository.getUserDataByEmail(user)
                 .addOnSuccessListener(usr -> {
-                    userData.setValue(usr); })
+                    userDataByEmail.setValue(usr); })
                 .addOnFailureListener(usr -> {
-                    userData.setValue(null); });
+                    userDataByEmail.setValue(null); });
+    }
+
+    public void findUserDataByIdFs(User user) {
+        usersRepository.getUserDataByIdFs(user)
+                .addOnSuccessListener(usr -> {
+                    userDataByIdFs.setValue(usr); })
+                .addOnFailureListener(usr -> {
+                    userDataByIdFs.setValue(null); });
     }
 
     public void userExists(User user) {

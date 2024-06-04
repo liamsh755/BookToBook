@@ -1,0 +1,131 @@
+@startuml
+class co.il.liam.model.BaseEntity {
+# String idFs
++ String getIdFs()
++ void setIdFs(String)
+}
+
+
+class co.il.liam.model.BaseList {
+}
+class co.il.liam.model.Books {
++ void reverseContents()
+}
+
+class co.il.liam.model.Book {
+- String userId
+- String title
+- String genre
+- Condition condition
+- Exchange exchange
+- String author
+- String description
+- String image
+- String imageUrl
+- int mainColor
+- int secColor
+- Height height
+- Width width
+- Decoration decorations
+- Font font
++ String getUserId()
++ void setUserId(String)
++ String getTitle()
++ void setTitle(String)
++ String getGenre()
++ void setGenre(String)
++ Condition getCondition()
++ void setCondition(Condition)
++ Exchange getExchange()
++ void setExchange(Exchange)
++ String getAuthor()
++ void setAuthor(String)
++ String getDescription()
++ void setDescription(String)
++ String getImage()
++ void setImage(String)
++ String getImageUrl()
++ void setImageUrl(String)
++ int getMainColor()
++ void setMainColor(int)
++ int getSecColor()
++ void setSecColor(int)
++ Height getHeight()
++ void setHeight(Height)
++ Width getWidth()
++ void setWidth(Width)
++ Decoration getDecorations()
++ void setDecorations(Decoration)
++ Font getFont()
++ void setFont(Font)
+}
+
+
+enum co.il.liam.model.Condition {
++  PERFECT
++  USED
++  OLD
+}
+
+enum co.il.liam.model.Exchange {
++  PERMANENT
++  TEMPORARY
++  FOR_DISPLAY
+}
+
+enum co.il.liam.model.Height {
++  TALL
++  MEDIUM
++  SHORT
+}
+
+enum co.il.liam.model.Width {
++  THICK
++  THIN
+}
+
+enum co.il.liam.model.Decoration {
++  ONE_LINE
++  TWO_LINES
++  THREE_LINES
++  THICK_LINE
+}
+
+enum co.il.liam.model.Font {
++  COMIC_SANS
++  CLASSIC
++  CURSIVE
++  GOTHIC
++  FUN
+}
+
+class co.il.liam.model.User {
+- String username
+- String email
+- String state
+- String city
+- String password
++ String getUsername()
++ void setUsername(String)
++ String getEmail()
++ void setEmail(String)
++ String getState()
++ void setState(String)
++ String getCity()
++ void setCity(String)
++ String getPassword()
++ void setPassword(String)
++ boolean equals(Object)
+}
+
+
+
+
+java.io.Serializable <|.. co.il.liam.model.BaseEntity
+java.util.ArrayList <|-- co.il.liam.model.BaseList
+co.il.liam.model.BaseList <|-- co.il.liam.model.Books
+java.io.Serializable <|.. co.il.liam.model.Book
+co.il.liam.model.BaseEntity <|-- co.il.liam.model.Book
+java.io.Serializable <|.. co.il.liam.model.User
+co.il.liam.model.BaseEntity <|-- co.il.liam.model.User
+@enduml

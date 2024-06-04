@@ -18,12 +18,15 @@ import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,6 +68,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import co.il.liam.booktobook.CheckInternetConnection;
+import co.il.liam.booktobook.LargerPhotoDialog;
 import co.il.liam.booktobook.R;
 import co.il.liam.helper.BitMapHelper;
 import co.il.liam.model.Book;
@@ -703,6 +707,19 @@ public class AddActivity extends BaseActivity {
                     imm.hideSoftInputFromWindow(etAddGenre.getWindowToken(), 0);
 
                 }
+            }
+        });
+
+        ivAddImagePreview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+                LargerPhotoDialog enlargeDialog = new LargerPhotoDialog(AddActivity.this, ((BitmapDrawable) ivAddImagePreview.getDrawable()).getBitmap(), displayMetrics);
+                enlargeDialog.setCancelable(true);
+                enlargeDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
+                enlargeDialog.show();
             }
         });
     }

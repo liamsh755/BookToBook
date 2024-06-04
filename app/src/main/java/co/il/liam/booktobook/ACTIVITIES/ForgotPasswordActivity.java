@@ -64,7 +64,7 @@ public class ForgotPasswordActivity extends BaseActivity {
             public void onChanged(Boolean aBoolean) {
 
                 if (aBoolean) {
-                    usersViewModel.findUserData(givenUser);
+                    usersViewModel.findUserDataByEmail(givenUser);
                 }
 
                 else {
@@ -81,7 +81,7 @@ public class ForgotPasswordActivity extends BaseActivity {
             }
         });
 
-        usersViewModel.getUserData().observe(this, new Observer<User>() {
+        usersViewModel.getUserDataByEmail().observe(this, new Observer<User>() {
             @Override
             public void onChanged(User user) {
                 String recipientEmail = givenUser.getEmail();

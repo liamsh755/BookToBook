@@ -1,5 +1,6 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -11,9 +12,11 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import co.il.liam.booktobook.R;
+import co.il.liam.model.User;
 
 public class LocationActivity extends BaseActivity {
     private TextView tvLocationGoBack;
+    private User loggedUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +30,9 @@ public class LocationActivity extends BaseActivity {
     @Override
     protected void initializeViews() {
         tvLocationGoBack = findViewById(R.id.tvLocationGoBack);
+
+        Intent userInfoIntent = getIntent();
+        loggedUser = (User) userInfoIntent.getSerializableExtra("user");
     }
 
     @Override

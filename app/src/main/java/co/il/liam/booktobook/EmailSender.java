@@ -65,11 +65,8 @@ public class EmailSender {
 
         @Override
         protected void onPostExecute(Boolean success) {
-            if (success) {
-                // Show a toast message indicating success
-                Toast.makeText(mContext, "Mail sent successfully", Toast.LENGTH_SHORT).show();
-            } else {
-                // Show a toast message indicating failure
+            if (!success) {
+                // Show a toast message indicating fail
                 Toast.makeText(mContext, "Failed to send mail", Toast.LENGTH_SHORT).show();
             }
         }

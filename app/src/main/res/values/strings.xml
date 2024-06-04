@@ -1,11 +1,33 @@
 <resources>
     <string name="app_name">Book to Book</string>
+
     //info descriptions
+
     <string name="showoff_desc">Show off your newly organized book collection</string>
     <string name="swap_desc">Swap books with other users in your area</string>
     <string name="discover_desc">Discover new books based on what you like</string>
     <string name="email_msg1">You\'re receiving this email because you requested a password reset for your account. To set a new password, insert the following verification code in the reset password page in the application.</string>
     <string name="email_msg2">If you don\'t want to change your password or didn\'t request this, you can safely disregard this email.\nIf this issue persists feel free to contact the support team at booktobookcs@gmail.com or reply to this email.\n\nThank you,\nThe BookToBook team </string>
+
     //no intenret
+
     <string name="no_internet">You are not connected to the internet. Make sure Wi-Fi is on, Airplane mode is off and try again.</string>
+
+    //underlined text
+
+    <string name="help_underlined"><u>Help</u></string>
+    <string name="about_us_underlines"><u>About us</u></string>
+
+    <string name="title_underlines"><u>Title:</u></string>
+    <string name="author_underlines"><u>Author:</u></string>
+    <string name="genre_underlines"><u>Genre:</u></string>
+    <string name="description_underlines"><u>Description:</u></string>
+    <string name="condition_underlines"><u>Condition:</u></string>
+    <string name="exchange_underlines"><u>Exchange:</u></string>
+    <string name="owner_underlines"><u>Owner:</u></string>
+    <string name="location_underlines"><u>Location:</u></string>
+
+    <string name="city_underlines"><u>City:</u></string>
+    <string name="state_underlines"><u>State:</u></string>
+
 </resources>

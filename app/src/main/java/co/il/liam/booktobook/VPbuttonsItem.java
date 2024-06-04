@@ -1,6 +1,5 @@
 package co.il.liam.booktobook;
 
-import android.graphics.drawable.Drawable;
 
 public class VPbuttonsItem {
 

@@ -142,7 +142,7 @@ public class UsersRepository {
         return detailsRight.getTask();
     }
 
-    public Task<User> getUserData(User user) {
+    public Task<User> getUserDataByEmail(User user) {
         TaskCompletionSource<User> userData = new TaskCompletionSource<>();
 
         collection.whereEqualTo("email", user.getEmail()).get()
@@ -156,11 +156,63 @@ public class UsersRepository {
 
                                 String username = document.getString("username");
                                 String idFs = document.getString("idFs");
+                                String state = document.getString("state");
+                                String city = document.getString("city");
 
                                 fullUserData.setEmail(user.getEmail());
                                 fullUserData.setPassword(user.getPassword());
                                 fullUserData.setUsername(username);
                                 fullUserData.setIdFs(idFs);
+                                fullUserData.setState(state);
+                                fullUserData.setCity(city);
+
+                                userData.setResult(fullUserData);
+
+                            }
+                            else
+                                userData.setResult(null);
+
+                        } else {
+                            userData.setResult(null);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        userData.setResult(null);
+                    }
+                });
+
+
+        return userData.getTask();
+    }
+
+    public Task<User> getUserDataByIdFs(User user) {
+        TaskCompletionSource<User> userData = new TaskCompletionSource<>();
+
+        collection.whereEqualTo("idFs", user.getIdFs()).get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                            DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
+                            if (document != null) {
+                                User fullUserData = new User();
+
+                                String email = document.getString("email");
+                                String password = document.getString("password");
+                                String username = document.getString("username");
+                                String idFs = document.getString("idFs");
+                                String state = document.getString("state");
+                                String city = document.getString("city");
+
+                                fullUserData.setEmail(email);
+                                fullUserData.setPassword(password);
+                                fullUserData.setUsername(username);
+                                fullUserData.setIdFs(idFs);
+                                fullUserData.setState(state);
+                                fullUserData.setCity(city);
 
                                 userData.setResult(fullUserData);
 

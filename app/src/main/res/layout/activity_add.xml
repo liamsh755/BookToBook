@@ -103,7 +103,7 @@
         android:text="Show preview"
         android:textAllCaps="false"
         android:textColor="#222222"
-        android:textSize="26dp"
+        android:textSize="26sp"
         android:theme="@android:style/Widget.Material.Button.Borderless.Colored"
         app:cornerRadius="30dp"
         app:layout_constraintBottom_toBottomOf="parent"

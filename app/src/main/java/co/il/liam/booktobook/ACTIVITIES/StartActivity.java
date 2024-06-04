@@ -53,6 +53,8 @@ public class StartActivity extends BaseActivity {
             foundUser.setEmail(preferences.getString("uEmail", ""));
             foundUser.setPassword(preferences.getString("uPassword", ""));
             foundUser.setIdFs(preferences.getString("uIdFs", ""));
+            foundUser.setState(preferences.getString("uState", ""));
+            foundUser.setCity(preferences.getString("uCity", ""));
 
             Intent intentEnter = new Intent(getApplicationContext(), MainScreenActivity.class);
             intentEnter.putExtra("user", foundUser);

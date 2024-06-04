@@ -6,13 +6,15 @@ import java.util.Objects;
 public class User extends BaseEntity implements Serializable {
     private String username;
     private String email;
-    private String cityId;
+    private String state;
+    private String city;
     private String password;
 
-    public User(String username, String email, String cityId, String password) {
+    public User(String username, String email, String state, String city, String password) {
         this.username = username;
         this.email = email;
-        this.cityId = cityId;
+        this.state = state;
+        this.city = city;
         this.password = password;
     }
 
@@ -40,12 +42,20 @@ public class User extends BaseEntity implements Serializable {
         this.email = email;
     }
 
-    public String getCityId() {
-        return cityId;
+    public String getState() {
+        return state;
     }
 
-    public void setCityId(String cityId) {
-        this.cityId = cityId;
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 
     public String getPassword() {
@@ -62,7 +72,11 @@ public class User extends BaseEntity implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(username, user.username) && Objects.equals(email, user.email) && Objects.equals(cityId, user.cityId) && Objects.equals(password, user.password);
+        return Objects.equals(username, user.username)
+                && Objects.equals(email, user.email)
+                && Objects.equals(state, user.state)
+                && Objects.equals(city, user.city)
+                && Objects.equals(password, user.password);
     }
 
 }

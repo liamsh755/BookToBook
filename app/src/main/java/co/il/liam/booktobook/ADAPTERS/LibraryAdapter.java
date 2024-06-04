@@ -28,17 +28,15 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryHolder> {
 
     private Context context;
-    private int bookLayout;
     private Books books;
 
     private OnItemClickListener listener;
     private OnItemLongClickListener longListener;
 
-    private static int expandedPosition = -1;
+    public int expandedPosition = -1;
 
-    public LibraryAdapter(Context context, int bookLayout, Books books, OnItemClickListener listener, OnItemLongClickListener longListener) {
+    public LibraryAdapter(Context context, Books books, OnItemClickListener listener, OnItemLongClickListener longListener) {
         this.context = context;
-        this.bookLayout = bookLayout;
         this.books = books;
         this.listener = listener;
         this.longListener = longListener;
@@ -81,7 +79,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
     @NonNull
     @Override
     public LibraryAdapter.LibraryHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new LibraryHolder(LayoutInflater.from(context).inflate(viewType, parent, false));
+        return new LibraryHolder(LayoutInflater.from(context).inflate(viewType, parent, false), this);
     }
 
     @Override
@@ -99,12 +97,19 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
     }
 
     public void enlargeItem(int position) {
-        expandedPosition = position;
+        if (expandedPosition == position) {
+            expandedPosition = -1;
+        }
+        else {
+            expandedPosition = position;
+        }
         notifyDataSetChanged();
     }
 
 
     public static class LibraryHolder extends RecyclerView.ViewHolder {
+        private LibraryAdapter adapterInstance;
+
         private TextView tvBookTitle;
         private TextView tvBookAuthor;
         private CircleImageView civBookImage;
@@ -117,8 +122,11 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
         private View vBookDec3;
         private View vBookDec4;
 
-        public LibraryHolder(@NonNull View itemView) {
+        public LibraryHolder(@NonNull View itemView, LibraryAdapter adapterInstance) {
             super(itemView);
+
+            this.adapterInstance = adapterInstance;
+
             tvBookTitle = itemView.findViewById(R.id.tvBookTitle);
             tvBookAuthor = itemView.findViewById(R.id.tvBookAuthor);
             civBookImage = itemView.findViewById(R.id.civBookImage);
@@ -156,7 +164,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
             //set selected item
             int position = getAdapterPosition();
 
-            if (position == expandedPosition) {
+            if (position == adapterInstance.expandedPosition) {
                 clBookBorder.setBackground(ContextCompat.getDrawable(itemView.getContext(), R.drawable.book_border_selected));
 
                 ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) cvBookBackground.getLayoutParams();
