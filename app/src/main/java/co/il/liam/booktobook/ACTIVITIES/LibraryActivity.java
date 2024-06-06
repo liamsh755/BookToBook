@@ -34,8 +34,10 @@ import co.il.liam.booktobook.R;
 import co.il.liam.helper.BitMapHelper;
 import co.il.liam.model.Book;
 import co.il.liam.model.Books;
+import co.il.liam.model.Chat;
 import co.il.liam.model.User;
 import co.il.liam.viewmodel.BooksViewModel;
+import co.il.liam.viewmodel.ChatsViewModel;
 import co.il.liam.viewmodel.UsersViewModel;
 
 public class LibraryActivity extends BaseActivity {
@@ -83,6 +85,7 @@ public class LibraryActivity extends BaseActivity {
     private User loggedUser;
     private BooksViewModel booksViewModel;
     private UsersViewModel usersViewModel;
+    private ChatsViewModel chatsViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -305,6 +308,17 @@ public class LibraryActivity extends BaseActivity {
                 }
             }
         });
+
+        chatsViewModel = new ViewModelProvider(this).get(ChatsViewModel.class);
+
+        chatsViewModel.getAddedChat().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (!aBoolean) {
+                    Toast.makeText(getApplicationContext(), "Chat exists", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void setRecyclerView() {
@@ -522,6 +536,10 @@ public class LibraryActivity extends BaseActivity {
     private void messageOwner() {
         if (selectedBookOwner != null) {
             Toast.makeText(getApplicationContext(), "Message " + selectedBookOwner.getUsername(), Toast.LENGTH_SHORT).show();
+            Chat chat = new Chat();
+            chat.setUserOne(loggedUser);
+            chat.setUserTwo(selectedBookOwner);
+            chatsViewModel.addChat(chat);
         }
     }
 

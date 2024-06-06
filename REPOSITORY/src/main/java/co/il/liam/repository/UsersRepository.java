@@ -19,6 +19,7 @@ import java.util.Objects;
 import co.il.liam.model.User;
 
 public class UsersRepository {
+    private final String COLLECTION_NAME = "Users";
     private FirebaseFirestore db;
     private CollectionReference collection;
 
@@ -31,7 +32,7 @@ public class UsersRepository {
             db = FirebaseFirestore.getInstance(FireBaseInstance.app);
         }
 
-        collection = db.collection("Users");
+        collection = db.collection(COLLECTION_NAME);
     }
 
     public Task<Boolean> add (User user) {

@@ -13,20 +13,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.075" />
+        app:layout_constraintGuide_begin="55dp" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/glChat92"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.925" />
+        app:layout_constraintGuide_end="75dp" />
 
     <View
         android:id="@+id/view"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:background="@drawable/background_gradient_bottom_half"
+        android:background="#0F5363   "
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -37,7 +37,7 @@
         android:id="@+id/view2"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:background="@drawable/background_gradient_top_half"
+        android:background="#0F5363"
         app:layout_constraintBottom_toTopOf="@+id/glChat7"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -94,17 +94,19 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/edittext_border"
         android:elevation="10dp"
         android:ems="10"
         android:fontFamily="@font/montserrat_alternates_light"
         android:hint="Message"
-        android:inputType="text"
-        android:paddingStart="10dp"
-        android:text="Message here laalalaa"
+        android:inputType="text|textLongMessage|textMultiLine"
+        android:paddingStart="20dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="3dp"
         android:textColor="#EAEAEA"
         android:textColorHint="#7A7A7A"
         android:textSize="16sp"
@@ -112,4 +114,27 @@
         app:layout_constraintEnd_toStartOf="@+id/ivChatSendMessage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/glChat92" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChatMessages"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toTopOf="@+id/view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/view2"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <ProgressBar
+        android:id="@+id/pbChat"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

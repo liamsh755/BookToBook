@@ -10,6 +10,14 @@ public class Chat extends BaseEntity{
 
     public Chat() {}
 
+    public Chat(User userOne, User userTwo, String lastMessage, String lastTime, String lastDate) {
+        this.userOne = userOne;
+        this.userTwo = userTwo;
+        this.lastMessage = lastMessage;
+        this.lastTime = lastTime;
+        this.lastDate = lastDate;
+    }
+
     public User getUserOne() {
         return userOne;
     }

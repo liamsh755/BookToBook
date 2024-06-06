@@ -15,10 +15,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.Guideline;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import org.w3c.dom.Text;
 
 import co.il.liam.booktobook.ADAPTERS.ChatAdapter;
 import co.il.liam.booktobook.CheckInternetConnection;
@@ -26,6 +26,8 @@ import co.il.liam.booktobook.R;
 import co.il.liam.model.Chat;
 import co.il.liam.model.Chats;
 import co.il.liam.model.User;
+import co.il.liam.viewmodel.ChatsViewModel;
+import co.il.liam.viewmodel.MessagesViewModel;
 
 public class ChatListActivity extends BaseActivity {
     private final int ANIMATION_DURATION = 400;
@@ -35,7 +37,7 @@ public class ChatListActivity extends BaseActivity {
     private Guideline glChatList92;
     private View vChatListTopGradient;
     private View vChatListBottomGradient;
-    private TextView tvChatListChat;
+    private TextView tvChatListNoChats;
     private RecyclerView rvChatListChats;
     private TextView tvChatListNameDisplay;
 
@@ -44,6 +46,8 @@ public class ChatListActivity extends BaseActivity {
     private Handler handler = new Handler();
 
     private User loggedUser;
+    private ChatsViewModel chatsViewModel;
+    private MessagesViewModel messagesViewModel;
     private Chats chats;
 
     @Override
@@ -56,10 +60,43 @@ public class ChatListActivity extends BaseActivity {
         waitBeforeOpening(ANIMATION_DURATION);
         setNameDisplay();
         setRecyclerView();
+        setObservers();
         setChats();
 
         //checks internet connection
         CheckInternetConnection.check(this);
+    }
+
+    private void setObservers() {
+        chatsViewModel = new ViewModelProvider(this).get(ChatsViewModel.class);
+
+        chatsViewModel.getFoundChats().observe(this, new Observer<Chats>() {
+            @Override
+            public void onChanged(Chats foundChats) {
+                if (foundChats != null) {
+                    chats = foundChats;
+                    chatAdapter.setChats(chats);
+                    emptyMessage(chats);
+                }
+                else {
+                    chats = new Chats();
+                    chatAdapter.setChats(chats);
+                    emptyMessage(chats);
+                }
+            }
+        });
+
+
+        messagesViewModel = new ViewModelProvider(this).get(MessagesViewModel.class);
+
+        messagesViewModel.getDeletedAll().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (!aBoolean) {
+                    Toast.makeText(ChatListActivity.this, "Chat messages deletion failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     //animation
@@ -97,6 +134,9 @@ public class ChatListActivity extends BaseActivity {
                     fadeIn(tvChatListGoBack, ANIMATION_DURATION);
                     fadeIn(rvChatListChats, ANIMATION_DURATION);
                     fadeIn(tvChatListNameDisplay, ANIMATION_DURATION);
+                    if (tvChatListNoChats.getVisibility() == View.VISIBLE) {
+                        fadeIn(tvChatListNoChats, ANIMATION_DURATION);
+                    }
                 }
             });
 
@@ -166,7 +206,7 @@ public class ChatListActivity extends BaseActivity {
         glChatList92 = findViewById(R.id.glChatList92);
         vChatListTopGradient = findViewById(R.id.vChatListBottomGradient);
         vChatListBottomGradient = findViewById(R.id.vChatListTopGradient);
-        tvChatListChat = findViewById(R.id.tvChatListChat);
+        tvChatListNoChats = findViewById(R.id.tvChatListChat);
         rvChatListChats = findViewById(R.id.rvChatListChats);
         tvChatListNameDisplay = findViewById(R.id.tvChatListNameDisplay);
 
@@ -178,8 +218,8 @@ public class ChatListActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 fadeOut(tvChatListGoBack, ANIMATION_DURATION);
-                if (tvChatListChat.getVisibility() == View.VISIBLE) {
-                    fadeOut(tvChatListChat, ANIMATION_DURATION);
+                if (tvChatListNoChats.getVisibility() == View.VISIBLE) {
+                    fadeOut(tvChatListNoChats, ANIMATION_DURATION);
                 }
                 fadeOut(rvChatListChats, ANIMATION_DURATION);
                 fadeOut(tvChatListNameDisplay, ANIMATION_DURATION);
@@ -193,6 +233,7 @@ public class ChatListActivity extends BaseActivity {
 
             }
         });
+
     }
     private void setNameDisplay() {
         Intent  userInfoIntent = getIntent();
@@ -200,7 +241,7 @@ public class ChatListActivity extends BaseActivity {
 
         assert loggedUser != null;
         String name = loggedUser.getUsername();
-        tvChatListNameDisplay.setText(name);
+        tvChatListNameDisplay.setText("Hello " + name + "!");
     }
 
     private void setRecyclerView() {
@@ -210,7 +251,7 @@ public class ChatListActivity extends BaseActivity {
                 Intent goChat = new Intent(getApplicationContext(), ChatActivity.class);
                 goChat.putExtra("chat", chat);
                 goChat.putExtra("loggedUser", loggedUser);
-                startActivity(goChat);
+                startActivityForResult(goChat, 1);
                 overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
             }
         };
@@ -238,8 +279,8 @@ public class ChatListActivity extends BaseActivity {
                             chats.remove(chat);
                             chatAdapter.setChats(chats);
                             emptyMessage(chats);
-                            chatAdapter.notifyDataSetChanged();
-                            //booksViewModel.deleteBook(book);
+                            chatsViewModel.deleteChat(chat);
+                            messagesViewModel.deleteChatsMessages(chat);
                         }
                     }
                 });
@@ -257,48 +298,66 @@ public class ChatListActivity extends BaseActivity {
     }
 
     private void setChats() {
-        User userBob = new User();
-        userBob.setUsername("Bob");
-        userBob.setEmail("BOB@gmail.com");
-        userBob.setPassword("123456");
-        userBob.setIdFs("BBBBBBBBBBBBBBBBBB");
-        userBob.setState("Israel");
-        userBob.setCity("Jerusalem");
+//        User userBob = new User();
+//        userBob.setUsername("Bob");
+//        userBob.setEmail("BOB@gmail.com");
+//        userBob.setPassword("123456");
+//        userBob.setIdFs("BBBBBBBBBBBBBBBBBB");
+//        userBob.setState("Israel");
+//        userBob.setCity("Jerusalem");
+//
+//        User userAlice = new User();
+//        userAlice.setUsername("Alice");
+//        userAlice.setEmail("ALICE@gmail.com");
+//        userAlice.setPassword("654321");
+//        userAlice.setIdFs("AAAAAAAAAAAAAAAAAAAA");
+//        userAlice.setState("Israel");
+//        userAlice.setCity("Kfar Saba");
+//
+//        Chat chat1 = new Chat();
+//        chat1.setUserOne(loggedUser);
+//        chat1.setUserTwo(userBob);
+//        chat1.setLastMessage("Hey hey HEYYYY");
+//        chat1.setLastDate("3/6/2024");
+//        chat1.setLastTime("12:34");
+//
+//        Chat chat2 = new Chat();
+//        chat2.setUserOne(userAlice);
+//        chat2.setUserTwo(loggedUser);
+//        chat2.setLastMessage("ok sure I'll meet you there");
+//        chat2.setLastDate("4/6/2024");
+//        chat2.setLastTime("10:00");
+//
+//        chats = new Chats();
+//        chats.add(chat1);
+//        chats.add(chat2);
+//
+//        chatAdapter.setChats(chats);
 
-        User userAlice = new User();
-        userAlice.setUsername("Alice");
-        userAlice.setEmail("ALICE@gmail.com");
-        userAlice.setPassword("654321");
-        userAlice.setIdFs("AAAAAAAAAAAAAAAAAAAA");
-        userAlice.setState("Israel");
-        userAlice.setCity("Kfar Saba");
-
-        Chat chat1 = new Chat();
-        chat1.setUserOne(loggedUser);
-        chat1.setUserTwo(userBob);
-        chat1.setLastMessage("Hey hey HEYYYY");
-        chat1.setLastDate("3/6/2024");
-        chat1.setLastTime("12:34");
-
-        Chat chat2 = new Chat();
-        chat2.setUserOne(userAlice);
-        chat2.setUserTwo(loggedUser);
-        chat2.setLastMessage("ok sure I'll meet you there");
-        chat2.setLastDate("4/6/2024");
-        chat2.setLastTime("10:00");
 
         chats = new Chats();
-        chats.add(chat1);
-        chats.add(chat2);
 
-        chatAdapter.setChats(chats);
+        if (CheckInternetConnection.check(this)) {
+            chatsViewModel.getChats(loggedUser);
+        }
     }
 
     private void emptyMessage(Chats chats) {
         if (chats == null || chats.isEmpty()) {
-            tvChatListChat.setVisibility(View.VISIBLE);
+            tvChatListNoChats.setVisibility(View.VISIBLE);
         } else {
-            tvChatListChat.setVisibility(View.GONE);
+            tvChatListNoChats.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == Activity.RESULT_OK) {
+
+                chatsViewModel.getChats(loggedUser);
+            }
         }
     }
 }

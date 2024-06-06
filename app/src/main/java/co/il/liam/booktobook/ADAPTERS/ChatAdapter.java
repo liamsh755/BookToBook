@@ -72,6 +72,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatHolder> {
 
     public static class ChatHolder extends RecyclerView.ViewHolder {
         private TextView tvChatUsername;
+        private TextView tvChatEmail;
         private TextView tvChatLastMessage;
         private TextView tvChatLastTime;
         private TextView tvChatLastDate;
@@ -80,6 +81,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatHolder> {
             super(itemView);
 
             tvChatUsername = itemView.findViewById(R.id.tvChatUsername);
+            tvChatEmail = itemView.findViewById(R.id.tvChatEmail);
             tvChatLastMessage = itemView.findViewById(R.id.tvChatLastMessage);
             tvChatLastTime = itemView.findViewById(R.id.tvChatLastTime);
             tvChatLastDate = itemView.findViewById(R.id.tvChatLastDate);
@@ -88,6 +90,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatHolder> {
 
         public void bind(Chat chat, User recepientUser, ChatAdapter.OnItemClickListener listener, ChatAdapter.OnItemLongClickListener longListener) {
             tvChatUsername.setText(recepientUser.getUsername());
+            tvChatEmail.setText(recepientUser.getEmail());
             tvChatLastMessage.setText(chat.getLastMessage());
             tvChatLastTime.setText(chat.getLastTime());
             tvChatLastDate.setText(chat.getLastDate());
