@@ -44,7 +44,7 @@ public class LibraryActivity extends BaseActivity {
     private TextView tvLibraryGoBack;
     private RecyclerView rvLibrary;
     private LibraryAdapter libraryAdapter;
-    private AlertDialog loadingBooksDialog;
+    private LoadingDialog loadingBooksDialog;
     private Books library;
 
     private TextView tvLibraryTitle;
@@ -383,13 +383,11 @@ public class LibraryActivity extends BaseActivity {
         library = new Books();
 
         if (CheckInternetConnection.check(this)) {
+            LoadingDialog loadingDialog = new LoadingDialog(this, "Loading books...", "This will only take a few seconds");
+            loadingDialog.setCancelable(false);
+            loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
-            builder.setTitle("Loading books...");
-            builder.setMessage("This will only take a few seconds");
-            builder.setCancelable(false);
-
-            loadingBooksDialog = builder.create();
+            loadingBooksDialog = loadingDialog;
             loadingBooksDialog.show();
 
             if (Objects.equals(currentJob, jobLibrary)) {
@@ -488,11 +486,6 @@ public class LibraryActivity extends BaseActivity {
 
     private void filter() {
         Toast.makeText(getApplicationContext(), "Filter", Toast.LENGTH_SHORT).show();
-
-        LoadingDialog loadingDialog = new LoadingDialog(this, "Loading books...", "This will only take a few seconds");
-        loadingDialog.setCancelable(true);
-        loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
-        loadingDialog.show();
     }
 
 
