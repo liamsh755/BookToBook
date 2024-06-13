@@ -4,6 +4,8 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -62,15 +64,18 @@ public class MessagesRepository {
         return taskAddedMessage.getTask();
     }
 
-    public Task<Messages> listenChatsMessages (Chat chat) {
-        TaskCompletionSource<Messages> chatsMessages = new TaskCompletionSource<Messages>();
+    public LiveData<Messages> listenChatsMessages (Chat chat) {
+        User userOne = chat.getUserOne();
+        User userTwo = chat.getUserTwo();
+
+        MutableLiveData<Messages> chatsMessages = new MutableLiveData<>();
 
         collection.orderBy("content", Query.Direction.ASCENDING)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                         if (error != null) {
-                            chatsMessages.setResult(null);
+                            chatsMessages.setValue(null);
                         }
 
                         else if (value != null && !value.isEmpty()) {
@@ -78,19 +83,25 @@ public class MessagesRepository {
                             for (DocumentSnapshot document : value) {
                                 Message message = document.toObject(Message.class);
                                 if (message != null) {
-                                    messages.add(message);
+                                    User messageUserOne = message.getSender();
+                                    User messageUserTwo = message.getRecipient();
+
+                                    if (messageUserOne.equals(userOne) && messageUserTwo.equals(userTwo)
+                                            || messageUserOne.equals(userTwo) && messageUserTwo.equals(userOne)) {
+                                        messages.add(message);
+                                    }
                                 }
                             }
-                            chatsMessages.setResult(messages);
+                            chatsMessages.setValue(messages);
                         }
 
                         else {
-                            chatsMessages.setResult(null);
+                            chatsMessages.setValue(null);
                         }
                     }
                 });
 
-        return chatsMessages.getTask();
+        return chatsMessages;
     }
 
     public Task<Messages> findChatsMessages (Chat chat) {

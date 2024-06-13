@@ -85,6 +85,27 @@ public class BooksRepository {
 
         return successfullyAdd.getTask();
     }
+    public Task<Boolean> updateBook(Book book) {
+        TaskCompletionSource<Boolean> successfullyUpdate = new TaskCompletionSource<>();
+
+        DocumentReference document = collection.document(book.getIdFs());
+
+        document.set(book)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        successfullyUpdate.setResult(true);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        successfullyUpdate.setResult(false);
+                    }
+                });
+
+        return successfullyUpdate.getTask();
+    }
 
     public Task<Boolean> deleteBook(Book book) {
         TaskCompletionSource deletedBooK = new TaskCompletionSource<>();
@@ -132,7 +153,7 @@ public class BooksRepository {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Book book = document.toObject(Book.class);
                         Log.d("qqq", "found book: " + book.getExchange().toString() + ", " + book.getCondition().toString());
-                        if (book != null) {
+                        if (book != null && !book.getExchange().toString().equals("FOR_DISPLAY")) {
                             TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
                             storageTasks.add(taskCompletionSource.getTask());
 
@@ -186,7 +207,7 @@ public class BooksRepository {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Book book = document.toObject(Book.class);
                         Log.d("qqq", "found book: " + book.getExchange().toString() + ", " + book.getCondition().toString());
-                        if (book != null) {
+                        if (book != null && !book.getExchange().toString().equals("FOR_DISPLAY")) {
                             TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
                             storageTasks.add(taskCompletionSource.getTask());
 

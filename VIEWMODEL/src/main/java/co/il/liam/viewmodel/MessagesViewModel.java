@@ -4,6 +4,7 @@ import android.app.Application;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import co.il.liam.model.Chat;
@@ -38,8 +39,8 @@ public class MessagesViewModel extends AndroidViewModel {
     public MutableLiveData<Boolean> getDeletedAll() {
         return deletedAll;
     }
-    public MutableLiveData<Messages> getListener() {
-        return listener;
+    public LiveData<Messages> getListener(Chat chat) {
+        return messagesRepository.listenChatsMessages(chat);
     }
 
 
@@ -65,13 +66,5 @@ public class MessagesViewModel extends AndroidViewModel {
                     deletedAll.setValue(aBoolean); })
                 .addOnFailureListener(e -> {
                     deletedAll.setValue(null); });
-    }
-
-    public void listenChatsMessages(Chat chat) {
-        messagesRepository.listenChatsMessages(chat)
-                .addOnSuccessListener(messages -> {
-                    listener.setValue(messages); })
-                .addOnFailureListener(e -> {
-                    listener.setValue(null); });
     }
 }

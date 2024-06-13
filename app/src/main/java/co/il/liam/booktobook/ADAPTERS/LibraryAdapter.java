@@ -257,6 +257,7 @@ public class LibraryAdapter extends RecyclerView.Adapter<LibraryAdapter.LibraryH
 
     public void setBooks(Books books) {
         this.books = books;
+        expandedPosition = -1;
         notifyDataSetChanged();
     }
 

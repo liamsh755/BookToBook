@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.Objects;
 
 import co.il.liam.booktobook.R;
+import co.il.liam.model.Chat;
 import co.il.liam.model.Message;
 import co.il.liam.model.Messages;
 import co.il.liam.model.User;
@@ -23,11 +24,16 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     private Messages messages;
     private User loggedUser;
 
-    public MessagesAdapter(Context context, int chatLayout, Messages messages, User loggedUser) {
+    private OnItemClickListener listener;
+    private OnItemLongClickListener longListener;
+
+    public MessagesAdapter(Context context, int chatLayout, Messages messages, User loggedUser, OnItemClickListener listener, OnItemLongClickListener longListener) {
         this.context = context;
         this.messageLayout = chatLayout;
         this.messages = messages;
         this.loggedUser = loggedUser;
+        this.listener = listener;
+        this.longListener = longListener;
     }
 
 
@@ -51,7 +57,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         Message message = messages.get(position);
 
         if (message != null) {
-            holder.bind(message, findMessageType(message));
+            holder.bind(message, findMessageType(message), listener, longListener);
         }
     }
 
@@ -88,7 +94,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             tvMessageSenderDate = itemView.findViewById(R.id.tvMessageSenderDate);
         }
 
-        public void bind(Message message, String messageType) {
+        public void bind(Message message, String messageType, OnItemClickListener listener, OnItemLongClickListener longListener) {
             if (Objects.equals(messageType, "sender")) {
                 llMessageRecipient.setVisibility(View.GONE);
                 llMessageSender.setVisibility(View.VISIBLE);
@@ -107,11 +113,34 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 tvMessageRecipientDate.setText(message.getDate());
             }
 
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onItemClicked(message, getAdapterPosition());
+                }
+            });
+
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    longListener.onItemLongClicked(message);
+                    return true;
+                }
+            });
+
         }
     }
 
     public void setMessages(Messages messages) {
         this.messages = messages;
         notifyDataSetChanged();
+    }
+
+    public interface OnItemClickListener {
+        void onItemClicked(Message message, int position);
+    }
+
+    public interface OnItemLongClickListener {
+        boolean onItemLongClicked(Message message);
     }
 }

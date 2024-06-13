@@ -2,6 +2,7 @@ package co.il.liam.booktobook.ACTIVITIES;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
@@ -16,6 +17,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.Observer;
@@ -23,14 +25,16 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 import co.il.liam.booktobook.ADAPTERS.LibraryAdapter;
 import co.il.liam.booktobook.CheckInternetConnection;
+import co.il.liam.booktobook.EmptyDialog;
 import co.il.liam.booktobook.LargerPhotoDialog;
 import co.il.liam.booktobook.LoadingDialog;
-import co.il.liam.booktobook.NoInternetDialog;
 import co.il.liam.booktobook.R;
+import co.il.liam.booktobook.SearchDialog;
 import co.il.liam.helper.BitMapHelper;
 import co.il.liam.model.Book;
 import co.il.liam.model.Books;
@@ -40,7 +44,7 @@ import co.il.liam.viewmodel.BooksViewModel;
 import co.il.liam.viewmodel.ChatsViewModel;
 import co.il.liam.viewmodel.UsersViewModel;
 
-public class LibraryActivity extends BaseActivity {
+public class LibraryActivity extends BaseActivity implements SearchDialog.DialogResultsListener {
     private TextView tvLibraryGoBack;
     private RecyclerView rvLibrary;
     private LibraryAdapter libraryAdapter;
@@ -79,8 +83,15 @@ public class LibraryActivity extends BaseActivity {
     private User selectedBookOwner;
 
     private String currentJob = "";
-    private final String jobLibrary = "library";
-    private final String jobSearch = "search";
+    public static final String jobLibrary = "library";
+    public static final String jobSearch = "search";
+    private ArrayList<String> emails = new ArrayList<>();
+
+    private String getAllCalledFrom = "initialization";
+    private String findUserByIdCalledFrom = "bookData";
+    private User foundUserById;
+
+    private Book editingBook;
 
     private User loggedUser;
     private BooksViewModel booksViewModel;
@@ -91,14 +102,15 @@ public class LibraryActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_library);
+        setScreenOrientation();
 
         initializeViews();
         setListeners();
         setObservers();
         setRecyclerView();
         setLibrary();
+        findUsers();
     }
-
     //initializing
 
     @Override
@@ -212,6 +224,11 @@ public class LibraryActivity extends BaseActivity {
         });
     }
 
+    @Override
+    protected void setScreenOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+
     private void setObservers()  {
         booksViewModel = new ViewModelProvider(this).get(BooksViewModel.class);
         booksViewModel.getFoundBooks().observe(this, new Observer<Books>() {
@@ -223,12 +240,19 @@ public class LibraryActivity extends BaseActivity {
                     if (!books.isEmpty()) {
                         books.reverseContents();   //since the recyclerview and book xml-s are flipped for books to touch the shelf
                         // you need to reverse the order of the books so that it looks organized on the shelf
-                        library = books;
                         libraryAdapter.setBooks(books);
+                        if (Objects.equals(getAllCalledFrom, "initialization")) {
+                            library = books;
+                        }
                     }
 
                     else {
-                        showDialogNoBooksAndQuit();
+                        if (Objects.equals(currentJob, jobSearch)) {
+                            showDialogNoBooksAndStay();
+                        }
+                        else {
+                            showDialogNoBooksAndQuit();
+                        }
                     }
                 }
                 else {
@@ -249,19 +273,13 @@ public class LibraryActivity extends BaseActivity {
                 loadingBooksDialog.dismiss();
 
                 if (books != null) {
-                    if (!books.isEmpty()) {
-                        books.reverseContents();   //since the recyclerview and book xml-s are flipped for books to touch the shelf
-                        // you need to reverse the order of the books so that it looks organized on the shelf
-                        library = books;
-                        libraryAdapter.setBooks(books);
-                    }
+                    books.reverseContents();
+                    library = books;
+                    libraryAdapter.setBooks(books);
 
-                    else {
-                        showDialogNoBooksAndStay();
-                    }
                 }
                 else {
-                    Toast.makeText(getApplicationContext(), "There are no other books", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Books not found!!!", Toast.LENGTH_SHORT).show();
                     Books defaultBooks = new Books();
                     defaultBooks = addBooks(defaultBooks);
                     defaultBooks.reverseContents();
@@ -288,24 +306,60 @@ public class LibraryActivity extends BaseActivity {
             }
         });
 
+        booksViewModel.getUpdatedBook().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    Toast.makeText(getApplicationContext(), "Updated book", Toast.LENGTH_SHORT).show();
+                    if (CheckInternetConnection.check(LibraryActivity.this)) {
+                        LoadingDialog loadingDialog = new LoadingDialog(LibraryActivity.this, "Loading books...", "This will only take a few seconds");
+                        loadingDialog.setCancelable(false);
+                        loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
+
+                        loadingBooksDialog = loadingDialog;
+                        loadingBooksDialog.show();
+
+                        booksViewModel.getAll(loggedUser);
+                    }
+                }
+            }
+        });
+
         usersViewModel = new ViewModelProvider(this).get(UsersViewModel.class);
 
         usersViewModel.getUserDataByIdFs().observe(this, new Observer<User>() {
             @Override
             public void onChanged(User user) {
-                llLibraryOwnerData.setVisibility(View.VISIBLE);
-                pbLibraryWait.setVisibility(View.GONE);
+                if (Objects.equals(findUserByIdCalledFrom, "bookData")) {
+                    llLibraryOwnerData.setVisibility(View.VISIBLE);
+                    pbLibraryWait.setVisibility(View.GONE);
 
-                if (user != null) {
-                    selectedBookOwner = user;
+                    if (user != null) {
+                        selectedBookOwner = user;
 
-                    tvLibraryOwner.setText(user.getUsername());
-                    tvLibraryCountry.setText(user.getState());
-                    tvLibraryCity.setText(user.getCity());
+                        tvLibraryOwner.setText(user.getUsername());
+                        tvLibraryCountry.setText(user.getState());
+                        tvLibraryCity.setText(user.getCity());
+                    }
+                    else {
+                        tvLibraryOwner.setText("Error occured");
+                    }
                 }
+
                 else {
-                    tvLibraryOwner.setText("Error occured");
+
+                    if (user != null) {
+                        foundUserById = user;
+                    }
                 }
+
+            }
+        });
+
+        usersViewModel.getUserDataByEmail().observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                booksViewModel.getAll(user);
             }
         });
 
@@ -314,8 +368,25 @@ public class LibraryActivity extends BaseActivity {
         chatsViewModel.getAddedChat().observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-                if (!aBoolean) {
+                if (aBoolean) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
+                    builder.setTitle("You can now message " + selectedBookOwner.getUsername());
+                    builder.setMessage("The chat will appear in your chat list");
+                    builder.setCancelable(true);
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
+                }
+                else {
                     Toast.makeText(getApplicationContext(), "Chat exists", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        chatsViewModel.getFoundEmails().observe(this, new Observer<ArrayList<String>>() {
+            @Override
+            public void onChanged(ArrayList<String> foundEmails) {
+                if (foundEmails != null) {
+                    emails = foundEmails;
                 }
             }
         });
@@ -343,27 +414,36 @@ public class LibraryActivity extends BaseActivity {
             @Override
             public boolean onItemLongClicked(Book book) {
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
-                builder.setTitle(book.getTitle());
-                builder.setMessage("What action would you like to do?");
-                builder.setCancelable(true);
-                builder.setNegativeButton("Edit book", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getApplicationContext(), "edit", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                builder.setPositiveButton("Delete book", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        startDeletingBook(book);
-                    }
-                });
+                if (Objects.equals(currentJob, jobLibrary)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
+                    builder.setTitle(book.getTitle());
+                    builder.setMessage("What action would you like to do?");
+                    builder.setCancelable(true);
+                    builder.setNegativeButton("Edit book", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            editingBook = book;
+                            Intent editBookIntent = new Intent(LibraryActivity.this, AddActivity.class);
+                            editBookIntent.putExtra("editBook", book);
+                            editBookIntent.putExtra("context", "edit");
+                            startActivityForResult(editBookIntent, 2);
+                            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                        }
+                    });
+                    builder.setPositiveButton("Delete book", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            startDeletingBook(book);
+                        }
+                    });
 
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
 
-                return true;
+                    return true;
+                }
+
+                return false;
             }
         };
 
@@ -373,6 +453,11 @@ public class LibraryActivity extends BaseActivity {
         libraryAdapter = new LibraryAdapter(this, libraryTest, listener, longListener);
         rvLibrary.setAdapter(libraryAdapter);
         rvLibrary.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+
+        LinearLayoutManager layoutManager = (LinearLayoutManager) rvLibrary.getLayoutManager();
+        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
     }
 
     private void setLibrary()  {
@@ -403,6 +488,28 @@ public class LibraryActivity extends BaseActivity {
         }
     }
 
+    private void findUsers() {
+        chatsViewModel.findEmails(loggedUser);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (data != null) {
+            Book editedBook = (Book) data.getSerializableExtra("book");
+
+            if (requestCode == 2) {
+                if (editedBook != null) {
+                    libraryAdapter.setBooks(new Books());
+                    booksViewModel.updateBook(editedBook);
+                }
+                else {
+                    library.add(editingBook);
+                }
+            }
+        }
+    }
 
 
     //general methods
@@ -454,6 +561,7 @@ public class LibraryActivity extends BaseActivity {
 
             User findUser = new User();
             findUser.setIdFs(book.getUserId());
+            findUserByIdCalledFrom = "bookData";
             usersViewModel.findUserDataByIdFs(findUser);
 
         }
@@ -483,9 +591,226 @@ public class LibraryActivity extends BaseActivity {
         }
         return capitalize;
     }
+    private static String revertFixedEnumText(String s) {
+        String upper = s.toUpperCase();
+        int space = upper.indexOf(' ');
+        if (space != -1) {
+            return upper.substring(0, space) + "_" + upper.substring(space + 1);
+        }
+        return upper;
+    }
 
     private void filter() {
-        Toast.makeText(getApplicationContext(), "Filter", Toast.LENGTH_SHORT).show();
+        SearchDialog searchDialog = new SearchDialog(this, this, emails, loggedUser.getCity(), loggedUser.getState(), currentJob);
+        searchDialog.setCancelable(true);
+        searchDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
+        searchDialog.show();
+    }
+
+    @Override
+    public void onDialogResult(Bundle data) {
+        String category = data.getString("category");
+        String search = data.getString("search");
+        String stateOrCity = data.getString("stateOrCity");
+
+
+        //cheat for now
+        stateOrCity = "";
+
+        loadingBooksDialog.show();
+
+        removeBookData();
+        selectedBookOwner = null;
+        expendedBook = -1;
+
+        getAllCalledFrom = "filter";
+
+
+        if (Objects.equals(category, "My books")) {
+            booksViewModel.getAll(loggedUser);
+        }
+        else if (Objects.equals(category, "Email")) {
+            User userEmail = new User();
+            userEmail.setEmail(search);
+            usersViewModel.findUserDataByEmail(userEmail);
+        }
+
+        else {
+            Books newLibrary = new Books();
+
+            switch (category) {
+                case "Title":
+
+                    for (Book book : library) {
+                        if (book.getTitle().contains(search)) {
+                            if (!stateOrCity.isEmpty()) {
+
+                                findUserByIdCalledFrom = "filter";
+                                User findUser = new User();
+                                findUser.setIdFs(book.getUserId());
+                                usersViewModel.findUserDataByIdFs(findUser);
+
+                                if (stateOrCity.equals("city")) {
+                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                                else {
+                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                            }
+
+                            else {
+                                newLibrary.add(book);
+                            }
+
+                        }
+                    }
+
+                    break;
+
+                case "Author":
+
+                    for (Book book : library) {
+                        if (book.getAuthor().contains(search)) {
+                            if (!stateOrCity.isEmpty()) {
+
+                                findUserByIdCalledFrom = "filter";
+                                User findUser = new User();
+                                findUser.setIdFs(book.getUserId());
+                                usersViewModel.findUserDataByIdFs(findUser);
+
+                                if (stateOrCity.equals("city")) {
+                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                                else {
+                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                            }
+
+                            else {
+                                newLibrary.add(book);
+                            }
+
+                        }
+                    }
+
+                    break;
+
+                case "Genre":
+
+                    for (Book book : library) {
+                        if (Objects.equals(book.getGenre(), search)) {
+                            if (!stateOrCity.isEmpty()) {
+
+                                findUserByIdCalledFrom = "filter";
+                                User findUser = new User();
+                                findUser.setIdFs(book.getUserId());
+                                usersViewModel.findUserDataByIdFs(findUser);
+
+                                if (stateOrCity.equals("city")) {
+                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                                else {
+                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                            }
+
+                            else {
+                                newLibrary.add(book);
+                            }
+
+                        }
+                    }
+
+                    break;
+
+                case "Condition":
+
+                    for (Book book : library) {
+                        if (Objects.equals(book.getCondition().toString(), revertFixedEnumText(search))) {
+                            if (!stateOrCity.isEmpty()) {
+
+                                findUserByIdCalledFrom = "filter";
+                                User findUser = new User();
+                                findUser.setIdFs(book.getUserId());
+                                usersViewModel.findUserDataByIdFs(findUser);
+
+                                if (stateOrCity.equals("city")) {
+                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                                else {
+                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                            }
+
+                            else {
+                                newLibrary.add(book);
+                            }
+
+                        }
+                    }
+
+                    break;
+
+                case "Exchange":
+
+                    for (Book book : library) {
+                        if (Objects.equals(book.getExchange().toString(), revertFixedEnumText(search))) {
+                            if (!stateOrCity.isEmpty()) {
+
+                                findUserByIdCalledFrom = "filter";
+                                User findUser = new User();
+                                findUser.setIdFs(book.getUserId());
+                                usersViewModel.findUserDataByIdFs(findUser);
+
+                                if (stateOrCity.equals("city")) {
+                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                                else {
+                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
+                                        newLibrary.add(book);
+                                    }
+                                }
+                            }
+
+                            else {
+                                newLibrary.add(book);
+                            }
+
+                        }
+                    }
+
+                    break;
+            }
+
+            loadingBooksDialog.dismiss();
+            libraryAdapter.setBooks(newLibrary);
+
+            if (newLibrary.isEmpty()) {
+                showDialogNoBooksAndStay();
+
+                booksViewModel.getAll(loggedUser);
+            }
+        }
+
+        Toast.makeText(getApplicationContext(), "Searching for " + category + " " + search + " " + stateOrCity, Toast.LENGTH_SHORT).show();
     }
 
 
@@ -494,41 +819,34 @@ public class LibraryActivity extends BaseActivity {
     //myBooks
 
     public void showDialogNoBooksAndQuit() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
-        builder.setTitle("Wow so empty...");
-        builder.setMessage("You have no books.");
-        builder.setCancelable(false);
-        builder.setPositiveButton("Go back", new DialogInterface.OnClickListener() {
+        View.OnClickListener listener = new View.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(View v) {
                 setResult(RESULT_OK);
                 finish();
                 overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
             }
-        });
+        };
 
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        EmptyDialog emptyDialog = new EmptyDialog(this, "You don't have any books", true, listener);
+        emptyDialog.setCancelable(false);
+        emptyDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
+        emptyDialog.show();
     }
-
 
 
 
     //search
 
     public void showDialogNoBooksAndStay() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(LibraryActivity.this);
-        builder.setTitle("Wow so empty...");
-        builder.setMessage("No books have been found.");
-        builder.setCancelable(true);
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        EmptyDialog emptyDialog = new EmptyDialog(this, "No books match your search results", false, null);
+        emptyDialog.setCancelable(true);
+        emptyDialog.getWindow().setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.transparent)));
+        emptyDialog.show();
     }
 
     private void messageOwner() {
         if (selectedBookOwner != null) {
-            Toast.makeText(getApplicationContext(), "Message " + selectedBookOwner.getUsername(), Toast.LENGTH_SHORT).show();
             Chat chat = new Chat();
             chat.setUserOne(loggedUser);
             chat.setUserTwo(selectedBookOwner);

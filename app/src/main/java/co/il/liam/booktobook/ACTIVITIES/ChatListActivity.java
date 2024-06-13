@@ -7,9 +7,14 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +37,7 @@ import co.il.liam.viewmodel.MessagesViewModel;
 public class ChatListActivity extends BaseActivity {
     private final int ANIMATION_DURATION = 400;
     private TextView tvChatListGoBack;
+    private EditText etChatListSearch;
     private Guideline glChatList7;
     private Guideline glChatList50;
     private Guideline glChatList92;
@@ -54,14 +60,15 @@ public class ChatListActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_list);
+        setScreenOrientation();
 
         initializeViews();
         setListeners();
-        waitBeforeOpening(ANIMATION_DURATION);
         setNameDisplay();
         setRecyclerView();
         setObservers();
         setChats();
+        waitBeforeOpening(ANIMATION_DURATION);
 
         //checks internet connection
         CheckInternetConnection.check(this);
@@ -76,12 +83,19 @@ public class ChatListActivity extends BaseActivity {
                 if (foundChats != null) {
                     chats = foundChats;
                     chatAdapter.setChats(chats);
-                    emptyMessage(chats);
                 }
                 else {
                     chats = new Chats();
                     chatAdapter.setChats(chats);
-                    emptyMessage(chats);
+                }
+            }
+        });
+
+        chatsViewModel.getDeletedChat().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    Toast.makeText(ChatListActivity.this, "Chat deleted", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -93,7 +107,7 @@ public class ChatListActivity extends BaseActivity {
             @Override
             public void onChanged(Boolean aBoolean) {
                 if (!aBoolean) {
-                    Toast.makeText(ChatListActivity.this, "Chat messages deletion failed", Toast.LENGTH_SHORT).show();
+                    Log.d("qqq", "either there were no messages to delete which is ok or failed to delete messages which is bad");
                 }
             }
         });
@@ -134,9 +148,8 @@ public class ChatListActivity extends BaseActivity {
                     fadeIn(tvChatListGoBack, ANIMATION_DURATION);
                     fadeIn(rvChatListChats, ANIMATION_DURATION);
                     fadeIn(tvChatListNameDisplay, ANIMATION_DURATION);
-                    if (tvChatListNoChats.getVisibility() == View.VISIBLE) {
-                        fadeIn(tvChatListNoChats, ANIMATION_DURATION);
-                    }
+                    fadeIn(etChatListSearch, ANIMATION_DURATION);
+                    emptyMessage(chats);
                 }
             });
 
@@ -201,6 +214,7 @@ public class ChatListActivity extends BaseActivity {
     @Override
     protected void initializeViews() {
         tvChatListGoBack = findViewById(R.id.tvChatListGoBack);
+        etChatListSearch = findViewById(R.id.etChatListSearch);
         glChatList7 = findViewById(R.id.glChatList7);
         glChatList50 = findViewById(R.id.glChatList50);
         glChatList92 = findViewById(R.id.glChatList92);
@@ -223,6 +237,7 @@ public class ChatListActivity extends BaseActivity {
                 }
                 fadeOut(rvChatListChats, ANIMATION_DURATION);
                 fadeOut(tvChatListNameDisplay, ANIMATION_DURATION);
+                fadeOut(etChatListSearch, ANIMATION_DURATION);
 
                 handler.postDelayed(new Runnable() {
                     @Override
@@ -234,7 +249,56 @@ public class ChatListActivity extends BaseActivity {
             }
         });
 
+        etChatListSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().isEmpty()) {
+                    chatAdapter.setChats(chats);
+                }
+
+                else {
+                    String search = s.toString();
+
+                    Chats filteredChats = new Chats();
+                    for (Chat chat : chats) {
+
+                        User userOne = chat.getUserOne();
+                        User userTwo = chat.getUserTwo();
+
+                        if (userOne.equals(loggedUser)) {
+                            if (userTwo.getUsername().length() > search.length() && userTwo.getUsername().toLowerCase().startsWith(search.toLowerCase())) {
+                                filteredChats.add(chat);
+                            }
+                        }
+                        else {
+                            if (userOne.getUsername().length() > search.length() && userOne.getUsername().toLowerCase().startsWith(search.toLowerCase())) {
+                                filteredChats.add(chat);
+                            }
+                        }
+                    }
+
+                    chatAdapter.setChats(filteredChats);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
     }
+
+    @Override
+    protected void setScreenOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+
     private void setNameDisplay() {
         Intent  userInfoIntent = getIntent();
         loggedUser = (User) userInfoIntent.getSerializableExtra("user");
@@ -248,6 +312,7 @@ public class ChatListActivity extends BaseActivity {
         ChatAdapter.OnItemClickListener listener = new ChatAdapter.OnItemClickListener() {
             @Override
             public void onItemClicked(Chat chat, int position) {
+                etChatListSearch.clearFocus();
                 Intent goChat = new Intent(getApplicationContext(), ChatActivity.class);
                 goChat.putExtra("chat", chat);
                 goChat.putExtra("loggedUser", loggedUser);
@@ -298,42 +363,6 @@ public class ChatListActivity extends BaseActivity {
     }
 
     private void setChats() {
-//        User userBob = new User();
-//        userBob.setUsername("Bob");
-//        userBob.setEmail("BOB@gmail.com");
-//        userBob.setPassword("123456");
-//        userBob.setIdFs("BBBBBBBBBBBBBBBBBB");
-//        userBob.setState("Israel");
-//        userBob.setCity("Jerusalem");
-//
-//        User userAlice = new User();
-//        userAlice.setUsername("Alice");
-//        userAlice.setEmail("ALICE@gmail.com");
-//        userAlice.setPassword("654321");
-//        userAlice.setIdFs("AAAAAAAAAAAAAAAAAAAA");
-//        userAlice.setState("Israel");
-//        userAlice.setCity("Kfar Saba");
-//
-//        Chat chat1 = new Chat();
-//        chat1.setUserOne(loggedUser);
-//        chat1.setUserTwo(userBob);
-//        chat1.setLastMessage("Hey hey HEYYYY");
-//        chat1.setLastDate("3/6/2024");
-//        chat1.setLastTime("12:34");
-//
-//        Chat chat2 = new Chat();
-//        chat2.setUserOne(userAlice);
-//        chat2.setUserTwo(loggedUser);
-//        chat2.setLastMessage("ok sure I'll meet you there");
-//        chat2.setLastDate("4/6/2024");
-//        chat2.setLastTime("10:00");
-//
-//        chats = new Chats();
-//        chats.add(chat1);
-//        chats.add(chat2);
-//
-//        chatAdapter.setChats(chats);
-
 
         chats = new Chats();
 
@@ -344,7 +373,7 @@ public class ChatListActivity extends BaseActivity {
 
     private void emptyMessage(Chats chats) {
         if (chats == null || chats.isEmpty()) {
-            tvChatListNoChats.setVisibility(View.VISIBLE);
+            fadeIn(tvChatListNoChats, ANIMATION_DURATION);
         } else {
             tvChatListNoChats.setVisibility(View.GONE);
         }

@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -56,6 +57,7 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_screen);
+        setScreenOrientation();
 
         initializeViews();
         setListeners();
@@ -371,6 +373,11 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
                 Toast.makeText(getApplicationContext(), "About us", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void setScreenOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
     @Override

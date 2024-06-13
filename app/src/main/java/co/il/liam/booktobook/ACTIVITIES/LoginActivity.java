@@ -3,6 +3,7 @@ package co.il.liam.booktobook.ACTIVITIES;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -45,6 +46,7 @@ public class LoginActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        setScreenOrientation();
 
         initializeViews();
         setListeners();
@@ -195,6 +197,12 @@ public class LoginActivity extends BaseActivity {
         });
 
     }
+
+    @Override
+    protected void setScreenOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+
     protected void initializeViews() {
         etLoginEmail = findViewById(R.id.etLoginEmail);
         etLoginPassword = findViewById(R.id.etLoginPassword);

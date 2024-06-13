@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:fontFamily="@font/montserrat_alternates_light"
+                android:fontFamily="@font/montserrat_alternates_medium"
                 android:gravity="center_vertical"
                 android:maxLines="1"
                 android:text="Don't forget to do you homework! it's really important"

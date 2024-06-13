@@ -11,22 +11,29 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.Context;
 import android.content.ContentResolver;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,6 +70,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -110,8 +118,10 @@ public class AddActivity extends BaseActivity {
     private EditText etAddAuthor;
     private EditText etAddDescription;
     private ImageView ivAddInfoDescription;
-    private EditText etAddGenre;
+    private Spinner spnAddGenre;
+    private TextView tvAddGenreTitle;
     private ImageView btnAddImage;
+    private Boolean addedPhoto = false;
     private ConstraintLayout clAddImagePreview;
     private ImageView ivAddImagePreview;
     private ImageView ivAddInfoPicture;
@@ -136,16 +146,75 @@ public class AddActivity extends BaseActivity {
     private static final int REQUEST_CAMERA_PERMISSION = 100;
 
 
+    private Book oldBook;
+    private String context;
+    ArrayList<String> widths  = new ArrayList<>();
+    ArrayList<String> heights  = new ArrayList<>();
+    ArrayList<String> colors  = new ArrayList<>();
+    ArrayList<String> decorations  = new ArrayList<>();
+    ArrayList<String> conditions  = new ArrayList<>();
+    ArrayList<String> fonts  = new ArrayList<>();
+    ArrayList<String> statuses  = new ArrayList<>();
+    ArrayList<String> genres  = new ArrayList<>();
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add);
+        setScreenOrientation();
 
         initializeViews();
         setListeners();
         setSpinners();
         setObservers();
+        getExtra();
     }
+
+    private void getExtra() {
+        if (getIntent().getExtras() != null) {
+            if (getIntent().hasExtra("editBook")) {
+                oldBook = (Book) getIntent().getSerializableExtra("editBook");
+                if (oldBook != null) {
+                    setData();
+                    context = getIntent().getStringExtra("context");
+                    tvAddGoBack.setVisibility(View.INVISIBLE);
+                }
+            }
+        }
+    }
+
+    private void setData() {
+        startPreview();
+        btnAddConfirm.setText("Add book");
+        listen = true;
+
+        setSpinnerSelection(spnAddWidth, widths, fixEnumText(oldBook.getWidth().toString()));
+        setSpinnerSelection(spnAddHeight, heights,  fixEnumText(oldBook.getHeight().toString()));
+        setSpinnerSelection(spnAddMainColor, colors,  getStringFromColor(oldBook.getMainColor()));
+        setSpinnerSelection(spnAddSecColor, colors,  getStringFromColor(oldBook.getSecColor()));
+        setSpinnerSelection(spnAddDecoration, decorations,  fixEnumText(oldBook.getDecorations().toString()));
+        setSpinnerSelection(spnAddFont, fonts,  fixEnumText(oldBook.getFont().toString()));
+
+        etAddTitle.setText(oldBook.getTitle());
+        etAddAuthor.setText(oldBook.getAuthor());
+        etAddDescription.setText(oldBook.getDescription());
+        setSpinnerSelection(spnAddGenre, genres,  oldBook.getGenre());
+        ivAddImagePreview.setImageBitmap(BitMapHelper.decodeBase64(oldBook.getImage()));
+
+        setSpinnerSelection(spnAddCondition, conditions,  fixEnumText(oldBook.getCondition().toString()));
+        setSpinnerSelection(spnAddExchange, statuses,  fixEnumText(oldBook.getExchange().toString()));
+
+        setBookPreview();
+    }
+
+    private void setSpinnerSelection(Spinner spinner, ArrayList<String> list, String option) {
+        int position = list.indexOf(option);
+        if (position >= 0) {
+            spinner.setSelection(position);
+        }
+    }
+
 
     private void setObservers() {
         booksViewModel = new ViewModelProvider(this).get(BooksViewModel.class);
@@ -169,7 +238,6 @@ public class AddActivity extends BaseActivity {
 
     private void setSpinners() {
         //Width
-        ArrayList<String> widths  = new ArrayList<>();
         widths.add(fixEnumText(Width.THIN.toString()));
         widths.add(fixEnumText(Width.THICK.toString()));
         ArrayAdapter<String> widthsAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, widths);
@@ -177,7 +245,6 @@ public class AddActivity extends BaseActivity {
         spnAddWidth.setAdapter(widthsAdapter);
 
         //Height
-        ArrayList<String> heights  = new ArrayList<>();
         heights.add(fixEnumText(Height.TALL.toString()));
         heights.add(fixEnumText(Height.MEDIUM.toString()));
         heights.add(fixEnumText(Height.SHORT.toString()));
@@ -185,7 +252,6 @@ public class AddActivity extends BaseActivity {
         heightsAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         spnAddHeight.setAdapter(heightsAdapter);
 
-        ArrayList<String> colors  = new ArrayList<>();
         colors.add("Dark red");
         colors.add("Red");
         colors.add("Orange");
@@ -215,7 +281,6 @@ public class AddActivity extends BaseActivity {
         spnAddSecColor.setSelection(1);
 
         //Decorations
-        ArrayList<String> decorations  = new ArrayList<>();
         decorations.add(fixEnumText(Decoration.ONE_LINE.toString()));
         decorations.add(fixEnumText(Decoration.TWO_LINES.toString()));
         decorations.add(fixEnumText(Decoration.THREE_LINES.toString()));
@@ -225,7 +290,6 @@ public class AddActivity extends BaseActivity {
         spnAddDecoration.setAdapter(decorationsAdapter);
 
         //Font
-        ArrayList<String> fonts  = new ArrayList<>();
         fonts.add(fixEnumText(Font.COMIC_SANS.toString()));
         fonts.add(fixEnumText(Font.CLASSIC.toString()));
         fonts.add(fixEnumText(Font.CURSIVE.toString()));
@@ -236,7 +300,6 @@ public class AddActivity extends BaseActivity {
         spnAddFont.setAdapter(fontsAdapter);
 
         //conditions
-        ArrayList<String> conditions  = new ArrayList<>();
         conditions.add(fixEnumText(Condition.PERFECT.toString()));
         conditions.add(fixEnumText(Condition.USED.toString()));
         conditions.add(fixEnumText(Condition.OLD.toString()));
@@ -245,13 +308,93 @@ public class AddActivity extends BaseActivity {
         spnAddCondition.setAdapter(conditionsAdapter);
 
         //status
-        ArrayList<String> statuses  = new ArrayList<>();
         statuses.add(fixEnumText(Exchange.PERMANENT.toString()));
         statuses.add(fixEnumText(Exchange.TEMPORARY.toString()));
         statuses.add(fixEnumText(Exchange.FOR_DISPLAY.toString()));
         ArrayAdapter<String> statusesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, statuses);
         statusesAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         spnAddExchange.setAdapter(statusesAdapter);
+
+        //genres
+        genres.add("Other");
+        genres.add("Action & Adventure");
+        genres.add("Adventure");
+        genres.add("Anthology");
+        genres.add("Art & Photography");
+        genres.add("Biography");
+        genres.add("Business & Economics");
+        genres.add("Children's Books");
+        genres.add("Classic Literature");
+        genres.add("Coming-of-Age");
+        genres.add("Contemporary");
+        genres.add("Cookbooks");
+        genres.add("Crafts & Hobbies");
+        genres.add("Cultural");
+        genres.add("Cyberpunk");
+        genres.add("Dark Fantasy");
+        genres.add("Dystopian");
+        genres.add("Education & Teaching");
+        genres.add("Epistolary");
+        genres.add("Essays");
+        genres.add("Family Saga");
+        genres.add("Fantasy");
+        genres.add("Fiction");
+        genres.add("Game Lit");
+        genres.add("Graphic Novels");
+        genres.add("Gothic");
+        genres.add("Health & Wellness");
+        genres.add("Historical Fiction");
+        genres.add("History");
+        genres.add("Holiday");
+        genres.add("Home & Garden");
+        genres.add("Horror");
+        genres.add("Humor");
+        genres.add("Inspirational");
+        genres.add("Legal Thrillers");
+        genres.add("LGBTQ+");
+        genres.add("Magical Realism");
+        genres.add("Martial Arts");
+        genres.add("Medical Thrillers");
+        genres.add("Memoir");
+        genres.add("Music");
+        genres.add("Mystery");
+        genres.add("Nature & Environment");
+        genres.add("New Adult");
+        genres.add("Non-Fiction");
+        genres.add("Paranormal");
+        genres.add("Parenting");
+        genres.add("Poetry");
+        genres.add("Political");
+        genres.add("Political Thrillers");
+        genres.add("Psychology");
+        genres.add("Religious");
+        genres.add("Romance");
+        genres.add("Satire");
+        genres.add("Science");
+        genres.add("Science Fiction");
+        genres.add("Self-Help");
+        genres.add("Short Stories");
+        genres.add("Sociology");
+        genres.add("Space Opera");
+        genres.add("Spirituality");
+        genres.add("Sports");
+        genres.add("Steampunk");
+        genres.add("Suspense");
+        genres.add("Thriller");
+        genres.add("Time Travel");
+        genres.add("Travel");
+        genres.add("True Adventure");
+        genres.add("True Crime");
+        genres.add("Urban Fiction");
+        genres.add("War & Military");
+        genres.add("Westerns");
+        genres.add("Whodunit");
+        genres.add("Women's Fiction");
+        genres.add("Young Adult");
+
+        ArrayAdapter<String> genresAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, genres);
+        genresAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
+        spnAddGenre.setAdapter(genresAdapter);
 
     }
 
@@ -320,6 +463,9 @@ public class AddActivity extends BaseActivity {
         else if (Objects.equals(format, "uri")) {
             civBookImage.setImageURI(imageUri);
         }
+        else {
+            civBookImage.setImageDrawable(ivAddImagePreview.getDrawable());
+        }
     }
 
     @Override
@@ -346,7 +492,8 @@ public class AddActivity extends BaseActivity {
         etAddAuthor = findViewById(R.id.etAddAuthor);
         etAddDescription = findViewById(R.id.etAddDescription);
         ivAddInfoDescription = findViewById(R.id.ivAddInfoDescription);
-        etAddGenre = findViewById(R.id.etAddGenre);
+        spnAddGenre = findViewById(R.id.spnAddGenre);
+        tvAddGenreTitle = findViewById(R.id.tvAddGenreTitle);
         btnAddImage = findViewById(R.id.btnAddImage);
         clAddImagePreview = findViewById(R.id.clAddImagePreview);
         ivAddImagePreview = findViewById(R.id.ivAddImagePreview);
@@ -360,6 +507,9 @@ public class AddActivity extends BaseActivity {
 
         btnAddConfirm = findViewById(R.id.btnAddConfirm);
         pbAddWait = findViewById(R.id.pbAddWait);
+
+
+        tvAddGoBack.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -372,6 +522,11 @@ public class AddActivity extends BaseActivity {
         setSpinnersListeners();
 
         setEditTextsListeners();
+    }
+
+    @Override
+    protected void setScreenOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
     private void startPreview() {
@@ -388,7 +543,8 @@ public class AddActivity extends BaseActivity {
         etAddAuthor.setVisibility(View.VISIBLE);
         etAddDescription.setVisibility(View.VISIBLE);
         ivAddInfoDescription.setVisibility(View.VISIBLE);
-        etAddGenre.setVisibility(View.VISIBLE);
+        spnAddGenre.setVisibility(View.VISIBLE);
+        tvAddGenreTitle.setVisibility(View.VISIBLE);
         btnAddImage.setVisibility(View.VISIBLE);
         clAddImagePreview.setVisibility(View.VISIBLE);
         ivAddInfoPicture.setVisibility(View.VISIBLE);
@@ -460,16 +616,6 @@ public class AddActivity extends BaseActivity {
             }
         });
         etAddDescription.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    cbAddPreview.setChecked(false);
-                    cbAddPreview.setClickable(false);
-                    flAddPreview.setVisibility(View.GONE);
-                }
-            }
-        });
-        etAddGenre.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
@@ -654,6 +800,8 @@ public class AddActivity extends BaseActivity {
         btnAddImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                addedPhoto = true;
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(AddActivity.this);
                 builder.setTitle("Choose option");
                 builder.setMessage("Where do you get the photo from?");
@@ -687,12 +835,11 @@ public class AddActivity extends BaseActivity {
         clAddPreviewClickCheck.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (etAddTitle.hasFocus() | etAddAuthor.hasFocus() | etAddDescription.hasFocus() | etAddGenre.hasFocus()) {
+                if (etAddTitle.hasFocus() | etAddAuthor.hasFocus() | etAddDescription.hasFocus()) {
                     //remove focus from the widgets
                     etAddTitle.clearFocus();
                     etAddAuthor.clearFocus();
                     etAddDescription.clearFocus();
-                    etAddGenre.clearFocus();
 
                     //open book preview
                     cbAddPreview.setClickable(true);
@@ -704,7 +851,6 @@ public class AddActivity extends BaseActivity {
                     imm.hideSoftInputFromWindow(etAddTitle.getWindowToken(), 0);
                     imm.hideSoftInputFromWindow(etAddAuthor.getWindowToken(), 0);
                     imm.hideSoftInputFromWindow(etAddDescription.getWindowToken(), 0);
-                    imm.hideSoftInputFromWindow(etAddGenre.getWindowToken(), 0);
 
                 }
             }
@@ -724,15 +870,35 @@ public class AddActivity extends BaseActivity {
         });
     }
 
+    private Bitmap drawableToBitmap(Drawable drawable) {
+        if (drawable instanceof BitmapDrawable) {
+            return ((BitmapDrawable) drawable).getBitmap();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+
     private void addBook() {
         if (valid()) {
             Book book = new Book();
 
-            book.setUserId(loggedUser.getIdFs());
+            if (Objects.equals(context, "edit")) {
+                book.setUserId(oldBook.getUserId());
+            }
+            else {
+                book.setUserId(loggedUser.getIdFs());
+            }
+
             book.setTitle(etAddTitle.getText().toString());
             book.setAuthor(etAddAuthor.getText().toString());
             book.setDescription(etAddDescription.getText().toString());
-            book.setGenre(etAddGenre.getText().toString());
+            book.setGenre(spnAddGenre.getSelectedItem().toString());
 
             book.setExchange(Exchange.valueOf(revertFixedEnumText(spnAddExchange.getSelectedItem().toString())));
             book.setCondition(Condition.valueOf(revertFixedEnumText(spnAddCondition.getSelectedItem().toString())));
@@ -752,10 +918,21 @@ public class AddActivity extends BaseActivity {
             book.setDecorations(Decoration.valueOf(revertFixedEnumText(spnAddDecoration.getSelectedItem().toString())));
             book.setFont(Font.valueOf(revertFixedEnumText(spnAddFont.getSelectedItem().toString())));
 
-            if (CheckInternetConnection.check(this)) {
-                pbAddWait.setVisibility(View.VISIBLE);
-                booksViewModel.addBook(book);
+            if (Objects.equals(context, "edit")) {
+                book.setIdFs(oldBook.getIdFs());
+                Intent editedIntent = new Intent();
+                editedIntent.putExtra("book", book);
+                setResult(RESULT_OK, editedIntent);
+                finish();
+
             }
+            else {
+                if (CheckInternetConnection.check(this)) {
+                    pbAddWait.setVisibility(View.VISIBLE);
+                    booksViewModel.addBook(book);
+                }
+            }
+
         }
     }
 
@@ -763,7 +940,6 @@ public class AddActivity extends BaseActivity {
         String title = etAddTitle.getText().toString();
         String author = etAddAuthor.getText().toString();
         String description = etAddDescription.getText().toString();
-        String genre = etAddGenre.getText().toString();
 
         Boolean valid = true;
 
@@ -779,8 +955,8 @@ public class AddActivity extends BaseActivity {
             etAddDescription.setError("Enter the description");
             valid = false;
         }
-        else if (genre.isEmpty()) {
-            etAddGenre.setError("Enter the genre");
+        else if (!addedPhoto) {
+            Toast.makeText(getApplicationContext(), "Please select a photo", Toast.LENGTH_SHORT).show();
             valid = false;
         }
 
@@ -863,6 +1039,35 @@ public class AddActivity extends BaseActivity {
 
         return color != null ? color : 0;
     }
+    private String getStringFromColor(int color) {
+
+        Map<String, Integer> colorMap = new HashMap<>();
+        colorMap.put("Dark red", ContextCompat.getColor(this, R.color.book_dark_red));
+        colorMap.put("Red", ContextCompat.getColor(this, R.color.book_red));
+        colorMap.put("Orange", ContextCompat.getColor(this, R.color.book_orange));
+        colorMap.put("Gold", ContextCompat.getColor(this, R.color.book_gold));
+        colorMap.put("Yellow", ContextCompat.getColor(this, R.color.book_yellow));
+        colorMap.put("Green", ContextCompat.getColor(this, R.color.book_green));
+        colorMap.put("Dark green", ContextCompat.getColor(this, R.color.book_dark_green));
+        colorMap.put("Turquoise", ContextCompat.getColor(this, R.color.book_turquoise));
+        colorMap.put("Blue", ContextCompat.getColor(this, R.color.book_blue));
+        colorMap.put("Indigo", ContextCompat.getColor(this, R.color.book_indigo));
+        colorMap.put("Purple", ContextCompat.getColor(this, R.color.book_purple));
+        colorMap.put("Pink", ContextCompat.getColor(this, R.color.book_pink));
+        colorMap.put("Brown", ContextCompat.getColor(this, R.color.book_brown));
+        colorMap.put("Black", ContextCompat.getColor(this, R.color.book_black));
+        colorMap.put("Gray", ContextCompat.getColor(this, R.color.book_gray));
+        colorMap.put("White", ContextCompat.getColor(this, R.color.book_white));
+
+        for (Map.Entry<String, Integer> entry : colorMap.entrySet()) {
+            if (entry.getValue() == color) {
+                return entry.getKey();
+            }
+        }
+
+        return "Gold";
+    }
+
     public static Bitmap uriToBitmap(Context context, Uri uri) {
         Bitmap bitmap = null;
         try {
@@ -1049,4 +1254,16 @@ public class AddActivity extends BaseActivity {
         }
 
     }
+
+
+    public static long getFileSizeFromUri(Context context, Uri uri) {
+        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
+        int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+        cursor.moveToFirst();
+        long size = cursor.getLong(sizeIndex);
+        cursor.close();
+        return size;
+    }
+
+    //chatgpt has mroe here to add help
 }

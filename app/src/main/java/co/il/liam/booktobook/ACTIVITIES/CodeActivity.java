@@ -2,6 +2,7 @@ package co.il.liam.booktobook.ACTIVITIES;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -54,6 +55,8 @@ public class CodeActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_code);
+        setScreenOrientation();
+
         initializeViews();
         setListeners();
         sendCodeEmail();
@@ -526,6 +529,11 @@ public class CodeActivity extends BaseActivity {
                 dialog.show();
             }
         });
+    }
+
+    @Override
+    protected void setScreenOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
 

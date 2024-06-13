@@ -492,25 +492,36 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <EditText
-                android:id="@+id/etAddGenre"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="wrap_content"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
                 android:layout_marginBottom="10dp"
-                android:background="@drawable/edittext_border"
-                android:fontFamily="@font/montserrat_alternates_light"
-                android:gravity="left|center_vertical"
-                android:hint="Enter the book's genre"
-                android:inputType="text|textCapSentences"
-                android:maxLength="60"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:singleLine="true"
-                android:textColor="#FAFAFA"
-                android:textColorHint="#AEAEAE"
-                android:visibility="gone" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvAddGenreTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="6dp"
+                    android:layout_marginBottom="2dp"
+                    android:fontFamily="@font/montserrat_alternates_light"
+                    android:text="Book genre"
+                    android:textColor="#F9F9F9"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <Spinner
+                    android:id="@+id/spnAddGenre"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/spinner_background"
+                    android:visibility="gone" />
+
+
+            </LinearLayout>
+
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"

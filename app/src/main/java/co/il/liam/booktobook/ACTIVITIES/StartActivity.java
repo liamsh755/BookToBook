@@ -3,6 +3,7 @@ package co.il.liam.booktobook.ACTIVITIES;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
@@ -34,6 +35,7 @@ public class StartActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+        setScreenOrientation();
 
         initializeViews();
         setListeners();
@@ -113,6 +115,11 @@ public class StartActivity extends BaseActivity {
                 pageScrolled(position, positionOffset);
             }
         });
+    }
+
+    @Override
+    protected void setScreenOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
     private void pageScrolled(int position, float positionOffset) {

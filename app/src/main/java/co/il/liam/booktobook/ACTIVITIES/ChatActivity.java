@@ -1,6 +1,10 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -47,11 +51,12 @@ public class ChatActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        setScreenOrientation();
 
         initializeViews();
         setListeners();
-        setObservers();
         loadData();
+        setObservers();
         setMessages();
         setRecyclerView();
     }
@@ -63,7 +68,7 @@ public class ChatActivity extends BaseActivity {
             @Override
             public void onChanged(Boolean aBoolean) {
                 if (!aBoolean) {
-                    Toast.makeText(getApplicationContext(), "Failed to send text", Toast.LENGTH_SHORT).show();
+                    Log.d("qqq", "failed to add messages which is bad");
                 }
             }
         });
@@ -80,12 +85,12 @@ public class ChatActivity extends BaseActivity {
                     rvChatMessages.scrollToPosition(messagesAdapter.getItemCount() - 1);
                 }
                 else {
-                    Toast.makeText(getApplicationContext(), "Failed to load messages", Toast.LENGTH_SHORT).show();
+                    Log.d("qqq", "either no messages exist which is ok or failed to load messages which is bad");
                 }
             }
         });
 
-        messagesViewModel.getListener().observe(this, new Observer<Messages>() {
+        messagesViewModel.getListener(chat).observe(this, new Observer<Messages>() {
             @Override
             public void onChanged(Messages foundMessages) {
                 pbChat.setVisibility(View.INVISIBLE);
@@ -115,7 +120,42 @@ public class ChatActivity extends BaseActivity {
     }
 
     private void setRecyclerView() {
-        messagesAdapter = new MessagesAdapter(this, R.layout.message_single_layout, new Messages(), loggedUser);
+        MessagesAdapter.OnItemClickListener listener = new MessagesAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClicked(Message message, int position) {
+
+                String messageContent = message.getContent();
+
+                String reply = message.getSender().getUsername() + " at "
+                        + message.getDate() + " " + message.getTime()
+                        + " said:\n" + "\"" + messageContent + "\"\n\n";
+
+                if (!etChatMessage.getText().toString().equals(reply)) {
+                    etChatMessage.setText(reply);
+                    etChatMessage.setSelection(etChatMessage.getText().length());
+                    etChatMessage.requestFocus();
+                }
+                else {
+                    etChatMessage.setText("");
+                    etChatMessage.clearFocus();
+                }
+            }
+        };
+
+        MessagesAdapter.OnItemLongClickListener longListener = new MessagesAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClicked(Message message) {
+                String messageContent = message.getContent();
+
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("BTB Chat Message", messageContent);
+                clipboard.setPrimaryClip(clip);
+
+                return true;
+            }
+        };
+
+        messagesAdapter = new MessagesAdapter(this, R.layout.message_single_layout, new Messages(), loggedUser, listener, longListener);
         rvChatMessages.setAdapter(messagesAdapter);
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -123,105 +163,9 @@ public class ChatActivity extends BaseActivity {
     }
 
     private void setMessages() {
-//        messages = new Messages();
-
-//        messages.add(new Message(
-//                loggedUser,
-//                recipientUser,
-//                "Hello how are you? i said",
-//                "23:11",
-//                12,
-//                "5/6/2024"
-//        ));
-//
-//        messages.add(new Message(
-//                recipientUser,
-//                loggedUser,
-//                "I'm great thank you! he said",
-//                "23:12",
-//                7,
-//                "5/6/2024"
-//        ));
-//
-//        messages.add(new Message(
-//                loggedUser,
-//                recipientUser,
-//                "Great!",
-//                "23:12",
-//                37,
-//                "5/6/2024"
-//        ));
-//
-//        messages.add(new Message(
-//                recipientUser,
-//                loggedUser,
-//                "It is yes :-) especially now that i cant type logn stuff whatever it really doesnt mattar just gobrish id i care just testing ok test 123 hehe",
-//                "23:13",
-//                12,
-//                "5/6/2024"
-//        ));
-//
-//        messages.add(new Message(
-//                loggedUser,
-//                recipientUser,
-//                "Hello",
-//                "23:13",
-//                57,
-//                "5/6/2024"
-//        ));
-//
-//        messages.add(new Message(
-//                loggedUser,
-//                recipientUser,
-//                "plz answer",
-//                "23:13",
-//                59,
-//                "5/6/2024"
-//        ));
-//
-//        messages.add(new Message(
-//                loggedUser,
-//                recipientUser,
-//                "meeeee",
-//                "23:14",
-//                2,
-//                "5/6/2024"
-//        ));
-//        messages.add(new Message(
-//                loggedUser,
-//                recipientUser,
-//                "pwease",
-//                "23:14",
-//                4,
-//                "5/6/2024"
-//        ));
-//
-//
-//
-//        messages.add(new Message(
-//                loggedUser,
-//                recipientUser,
-//                "That's lovely",
-//                "23:12",
-//                39,
-//                "5/6/2024"
-//        ));
-//
-//        messages.add(new Message(
-//                loggedUser,
-//                recipientUser,
-//                "שלום מעניין אותי לדעת איך זה עובד חיחי זה יהיה ממש נחמד אם זה פשטו עובד סתם ככה",
-//                "23:12",
-//                39,
-//                "5/6/2024"
-//        ));
-//
-//        //sort messages by time
         messages = new Messages();
 
         pbChat.setVisibility(View.VISIBLE);
-        messagesViewModel.findChatsMessages(chat);
-        //messagesViewModel.listenChatsMessages(chat);
     }
 
     private void loadData() {
@@ -294,9 +238,7 @@ public class ChatActivity extends BaseActivity {
                     messagesViewModel.addMessage(message);
                     chatsViewModel.updateLastMessage(chat, message);
 
-                    messages.add(message);
-                    messages.sortByTime();
-                    messagesAdapter.setMessages(messages);
+                    //messagesViewModel.findChatsMessages(chat);
 
                     etChatMessage.setText("");
                     rvChatMessages.scrollToPosition(messagesAdapter.getItemCount() - 1);
@@ -312,5 +254,10 @@ public class ChatActivity extends BaseActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void setScreenOrientation() {
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 }

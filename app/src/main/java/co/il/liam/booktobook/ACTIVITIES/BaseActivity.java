@@ -16,4 +16,5 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     protected abstract void initializeViews();
     protected abstract void setListeners();
+    protected abstract void setScreenOrientation();
 }

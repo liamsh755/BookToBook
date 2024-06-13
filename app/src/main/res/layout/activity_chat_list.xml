@@ -77,7 +77,7 @@
         android:elevation="10dp"
         android:fontFamily="@font/montserrat_alternates_medium"
         android:gravity="center"
-        android:text="You don't have any ongoing chats"
+        android:text="No ongoing chats found"
         android:textColor="#0E0E0E"
         android:textSize="20sp"
         android:visibility="gone"
@@ -112,5 +112,31 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/glChatList92" />
+
+    <EditText
+        android:id="@+id/etChatListSearch"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/edittext_chat_filter_background"
+        android:ellipsize="middle"
+        android:ems="10"
+        android:fontFamily="@font/montserrat_alternates_light"
+        android:inputType="text"
+        android:maxLength="11"
+        android:paddingStart="45dp"
+        android:paddingEnd="20dp"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/glChatList7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/tvChatListGoBack"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

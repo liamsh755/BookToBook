@@ -1,11 +1,12 @@
 package co.il.liam.viewmodel;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
+
+import java.util.ArrayList;
 
 import co.il.liam.model.Chat;
 import co.il.liam.model.Chats;
@@ -20,6 +21,7 @@ public class ChatsViewModel extends AndroidViewModel {
     private MutableLiveData<Chats> foundChats;
     private MutableLiveData<Boolean> deletedChat;
     private MutableLiveData<Boolean> updatedLastMessage;
+    private MutableLiveData<ArrayList<String>> foundEmails;
 
     public ChatsViewModel(@NonNull Application application) {
         super(application);
@@ -29,6 +31,7 @@ public class ChatsViewModel extends AndroidViewModel {
         foundChats = new MutableLiveData<>();
         deletedChat = new MutableLiveData<>();
         updatedLastMessage = new MutableLiveData<>();
+        foundEmails = new MutableLiveData<>();
     }
 
     public MutableLiveData<Boolean> getAddedChat() {
@@ -42,6 +45,9 @@ public class ChatsViewModel extends AndroidViewModel {
     }
     public MutableLiveData<Boolean> getUpdatedLastMessage() {
         return updatedLastMessage;
+    }
+    public MutableLiveData<ArrayList<String>> getFoundEmails() {
+        return foundEmails;
     }
 
     public void addChat(Chat chat) {
@@ -74,5 +80,13 @@ public class ChatsViewModel extends AndroidViewModel {
                     updatedLastMessage.setValue(aBoolean); })
                 .addOnFailureListener(aBoolean -> {
                     updatedLastMessage.setValue(false); });
+    }
+
+    public void findEmails(User user) {
+        chatsRepository.findEmails(user)
+                .addOnSuccessListener(emails -> {
+                    foundEmails.setValue(emails); })
+                .addOnFailureListener(e -> {
+                    foundEmails.setValue(null); });
     }
 }
