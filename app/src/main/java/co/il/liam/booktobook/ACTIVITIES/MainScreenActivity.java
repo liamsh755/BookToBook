@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -436,5 +437,48 @@ public class MainScreenActivity extends BaseActivity implements VPbuttonsAdapter
                 Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
                 break;
         }
+    }
+
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainScreenActivity.this);
+        builder.setTitle("Logging out?");
+        builder.setMessage("Are you sure you want to leave?");
+        builder.setCancelable(false);
+        builder.setPositiveButton("Log out", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                fadeOut(ivLogout, ANIMATION_DURATION);
+                fadeOut(vpButtons, ANIMATION_DURATION);
+                fadeOut(tvMainNameDisplay, ANIMATION_DURATION);
+                fadeOut(tvMainHelp, ANIMATION_DURATION);
+                fadeOut(tvMainAbout, ANIMATION_DURATION);
+
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Start the animation after 2 seconds
+                        startLeavingAnimation();
+                    }
+                }, ANIMATION_DURATION);
+            }
+        });
+        builder.setNegativeButton("Stay logged in", null);
+
+        AlertDialog dialogLeave = builder.create();
+
+        new AlertDialog.Builder(this)
+                .setTitle("Go back Confirmation")
+                .setMessage("Are you sure you want to go back?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialogLeave.show();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }

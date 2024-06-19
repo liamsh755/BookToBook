@@ -380,4 +380,22 @@ public class RegisterActivity extends BaseActivity {
         return str.chars().anyMatch(Character::isDigit);
     }
 
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Go back Confirmation")
+                .setMessage("Are you sure you want to go back?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intentGoBack = new Intent(getApplicationContext(), StartActivity.class);
+                        startActivity(intentGoBack);
+                        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
 }

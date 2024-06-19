@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -324,20 +325,20 @@ public class ChatListActivity extends BaseActivity {
         ChatAdapter.OnItemLongClickListener longListener = new ChatAdapter.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClicked(Chat chat) {
-                String recipientUsername = "";
+                User recipientUser = new User();
                 if (chat.getUserOne().getUsername().equals(loggedUser.getUsername())) {
-                    recipientUsername = chat.getUserTwo().getUsername();
+                    recipientUser = chat.getUserTwo();
                 }
                 else {
-                    recipientUsername = chat.getUserOne().getUsername();
+                    recipientUser = chat.getUserOne();
                 }
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(ChatListActivity.this);
-                builder.setTitle("Stop chatting with " + recipientUsername + "?");
-                builder.setMessage("You won't be able to chat to this person until you find their books and message them again.");
-                builder.setCancelable(true);
-                builder.setNegativeButton("Keep chatting ", null);
-                builder.setPositiveButton("Delete chat", new DialogInterface.OnClickListener() {
+                AlertDialog.Builder deleteDialogBuilder = new AlertDialog.Builder(ChatListActivity.this);
+                deleteDialogBuilder.setTitle("Stop chatting with " + recipientUser.getUsername() + "?");
+                deleteDialogBuilder.setMessage("You won't be able to chat to this person until you find their books and message them again.");
+                deleteDialogBuilder.setCancelable(true);
+                deleteDialogBuilder.setNegativeButton("Keep chatting ", null);
+                deleteDialogBuilder.setPositiveButton("Delete chat", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (CheckInternetConnection.check(ChatListActivity.this)) {
@@ -350,8 +351,55 @@ public class ChatListActivity extends BaseActivity {
                     }
                 });
 
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                AlertDialog deleteDialog = deleteDialogBuilder.create();
+
+
+                AlertDialog.Builder reportDialogBuilder = new AlertDialog.Builder(ChatListActivity.this);
+                reportDialogBuilder.setTitle("Are you sure you want to report " + recipientUser.getUsername() + "?");
+                reportDialogBuilder.setMessage("You're welcome to delete the chat instead. If the problem persists please do report!");
+                reportDialogBuilder.setCancelable(true);
+                reportDialogBuilder.setNegativeButton("Delete chat ", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteDialog.show();
+                    }
+                });
+                User finalRecipientUser = recipientUser;
+                reportDialogBuilder.setPositiveButton("Report user", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Intent.ACTION_SEND);
+                        intent.putExtra(Intent.EXTRA_EMAIL, new String[] { "BookToBookCS@gmail.com" });
+                        intent.putExtra(Intent.EXTRA_SUBJECT, "Reporting a BookToBook user");
+                        intent.putExtra(Intent.EXTRA_TEXT, "Hello I want to report the user " + finalRecipientUser.getUsername()
+                                + " with the email " + finalRecipientUser.getEmail() + "\n\n<<PLEASE ADD MORE INFORMATION ABOUT THE REASON FOR THE REPORT>>");
+                        intent.setType("message/rfc822");
+                        startActivity(intent.createChooser(intent, "Choose an email client:"));
+                    }
+                });
+
+                AlertDialog reportDialog = reportDialogBuilder.create();
+
+
+                AlertDialog.Builder actionsDialogBuilder = new AlertDialog.Builder(ChatListActivity.this);
+                actionsDialogBuilder.setTitle("Choosing an action");
+                actionsDialogBuilder.setMessage("What action would you like to do?");
+                actionsDialogBuilder.setCancelable(true);
+                actionsDialogBuilder.setNegativeButton("Report user", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        reportDialog.show();
+                    }
+                });
+                actionsDialogBuilder.setPositiveButton("Delete chat", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteDialog.show();
+                    }
+                });
+
+                AlertDialog actionsDialog = actionsDialogBuilder.create();
+                actionsDialog.show();
 
                 return true;
             }
@@ -388,5 +436,35 @@ public class ChatListActivity extends BaseActivity {
                 chatsViewModel.getChats(loggedUser);
             }
         }
+    }
+
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Go back Confirmation")
+                .setMessage("Are you sure you want to go back?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        fadeOut(tvChatListGoBack, ANIMATION_DURATION);
+                        if (tvChatListNoChats.getVisibility() == View.VISIBLE) {
+                            fadeOut(tvChatListNoChats, ANIMATION_DURATION);
+                        }
+                        fadeOut(rvChatListChats, ANIMATION_DURATION);
+                        fadeOut(tvChatListNameDisplay, ANIMATION_DURATION);
+                        fadeOut(etChatListSearch, ANIMATION_DURATION);
+
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                startLeavingAnimation();
+                            }
+                        }, ANIMATION_DURATION);
+
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }

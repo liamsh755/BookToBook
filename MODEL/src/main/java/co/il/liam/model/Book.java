@@ -1,9 +1,8 @@
 package co.il.liam.model;
 
-import android.graphics.Bitmap;
-import android.graphics.Color;
-
 import com.google.firebase.firestore.Exclude;
+
+import static co.il.liam.helper.EnumHelper.fixEnumText;
 
 import java.io.Serializable;
 
@@ -97,6 +96,23 @@ public class Book extends BaseEntity implements Serializable {
         this.width = width;
         this.decorations = decorations;
         this.font = font;
+    }
+
+    public String generalGet(String category) {
+        switch (category) {
+            case "Title":
+                return title;
+            case "Author":
+                return author;
+            case "Genre":
+                return genre;
+            case "Condition":
+                return fixEnumText(condition.toString());
+            case "Exchange":
+                return fixEnumText(exchange.toString());
+        }
+
+        return "";
     }
 
     public String getUserId() {

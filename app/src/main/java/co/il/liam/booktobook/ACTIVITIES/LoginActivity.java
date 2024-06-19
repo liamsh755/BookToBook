@@ -1,6 +1,8 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -14,6 +16,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -255,6 +258,24 @@ public class LoginActivity extends BaseActivity {
                 startActivity(intentLogOut);
             }
         }
+    }
+
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Go back Confirmation")
+                .setMessage("Are you sure you want to go back?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intentGoBack = new Intent(getApplicationContext(), StartActivity.class);
+                        startActivity(intentGoBack);
+                        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
 }

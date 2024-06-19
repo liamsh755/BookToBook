@@ -29,5 +29,7 @@
 
     <string name="city_underlines"><u>City:</u></string>
     <string name="state_underlines"><u>State:</u></string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

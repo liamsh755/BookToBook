@@ -1,5 +1,6 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -43,6 +44,9 @@ import co.il.liam.model.User;
 import co.il.liam.viewmodel.BooksViewModel;
 import co.il.liam.viewmodel.ChatsViewModel;
 import co.il.liam.viewmodel.UsersViewModel;
+
+import static co.il.liam.helper.EnumHelper.fixEnumText;
+
 
 public class LibraryActivity extends BaseActivity implements SearchDialog.DialogResultsListener {
     private TextView tvLibraryGoBack;
@@ -88,8 +92,9 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
     private ArrayList<String> emails = new ArrayList<>();
 
     private String getAllCalledFrom = "initialization";
-    private String findUserByIdCalledFrom = "bookData";
-    private User foundUserById;
+    private Books filteredBooks;
+    private int givenBooks;
+    private int unmatchingBooks;
 
     private Book editingBook;
 
@@ -238,6 +243,11 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
 
                 if (books != null) {
                     if (!books.isEmpty()) {
+
+                        if (Objects.equals(currentJob, jobSearch)) {
+                            books = removeForDisplay(books);
+                        }
+
                         books.reverseContents();   //since the recyclerview and book xml-s are flipped for books to touch the shelf
                         // you need to reverse the order of the books so that it looks organized on the shelf
                         libraryAdapter.setBooks(books);
@@ -330,27 +340,18 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
         usersViewModel.getUserDataByIdFs().observe(this, new Observer<User>() {
             @Override
             public void onChanged(User user) {
-                if (Objects.equals(findUserByIdCalledFrom, "bookData")) {
-                    llLibraryOwnerData.setVisibility(View.VISIBLE);
-                    pbLibraryWait.setVisibility(View.GONE);
+                llLibraryOwnerData.setVisibility(View.VISIBLE);
+                pbLibraryWait.setVisibility(View.GONE);
 
-                    if (user != null) {
-                        selectedBookOwner = user;
+                if (user != null) {
+                    selectedBookOwner = user;
 
-                        tvLibraryOwner.setText(user.getUsername());
-                        tvLibraryCountry.setText(user.getState());
-                        tvLibraryCity.setText(user.getCity());
-                    }
-                    else {
-                        tvLibraryOwner.setText("Error occured");
-                    }
+                    tvLibraryOwner.setText(user.getUsername());
+                    tvLibraryCountry.setText(user.getState());
+                    tvLibraryCity.setText(user.getCity());
                 }
-
                 else {
-
-                    if (user != null) {
-                        foundUserById = user;
-                    }
+                    tvLibraryOwner.setText("Error occured");
                 }
 
             }
@@ -360,6 +361,37 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
             @Override
             public void onChanged(User user) {
                 booksViewModel.getAll(user);
+            }
+        });
+
+        usersViewModel.getFoundLocationBook().observe(this, new Observer<Book>() {
+            @Override
+            public void onChanged(Book book) {
+                loadingBooksDialog.dismiss();
+
+                if (book != null) {
+
+                    filteredBooks.add(book);
+                    libraryAdapter.setBooks(filteredBooks);
+
+                }
+                else {
+                    unmatchingBooks++;
+
+                    if (unmatchingBooks == givenBooks) {
+
+                        showDialogNoBooksAndStay();
+
+                        loadingBooksDialog.show();
+
+                        if (Objects.equals(currentJob, jobSearch)) {
+                            booksViewModel.getAllOtherBooks(loggedUser);
+                        }
+                        else {
+                            booksViewModel.getAll(loggedUser);
+                        }
+                    }
+                }
             }
         });
 
@@ -390,6 +422,18 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
                 }
             }
         });
+    }
+
+    private Books removeForDisplay(Books books) {
+        Books newBooks = new Books();
+
+        for (Book book : books) {
+            if (!Objects.equals(book.getExchange().toString(), "FOR_DISPLAY")){
+                newBooks.add(book);
+            }
+        }
+
+        return newBooks;
     }
 
     private void setRecyclerView() {
@@ -561,7 +605,6 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
 
             User findUser = new User();
             findUser.setIdFs(book.getUserId());
-            findUserByIdCalledFrom = "bookData";
             usersViewModel.findUserDataByIdFs(findUser);
 
         }
@@ -583,23 +626,6 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
         }
     }
 
-    private static String fixEnumText(String s) {
-        String capitalize =  s.charAt(0) + s.substring(1).toLowerCase();
-        int underscore = capitalize.indexOf('_');
-        if (underscore != -1) {
-            return capitalize.substring(0, underscore) + " " + capitalize.substring(underscore + 1);
-        }
-        return capitalize;
-    }
-    private static String revertFixedEnumText(String s) {
-        String upper = s.toUpperCase();
-        int space = upper.indexOf(' ');
-        if (space != -1) {
-            return upper.substring(0, space) + "_" + upper.substring(space + 1);
-        }
-        return upper;
-    }
-
     private void filter() {
         SearchDialog searchDialog = new SearchDialog(this, this, emails, loggedUser.getCity(), loggedUser.getState(), currentJob);
         searchDialog.setCancelable(true);
@@ -614,14 +640,14 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
         String stateOrCity = data.getString("stateOrCity");
 
 
-        //cheat for now
-        stateOrCity = "";
-
         loadingBooksDialog.show();
 
         removeBookData();
         selectedBookOwner = null;
         expendedBook = -1;
+        filteredBooks = new Books();
+        givenBooks = 0;
+        unmatchingBooks = 0;
 
         getAllCalledFrom = "filter";
 
@@ -638,176 +664,44 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
         else {
             Books newLibrary = new Books();
 
-            switch (category) {
-                case "Title":
+            for (Book book : library) {
+                String test = book.generalGet(category);
+                if (book.generalGet(category).toLowerCase().contains(search.toLowerCase())) {
 
-                    for (Book book : library) {
-                        if (book.getTitle().contains(search)) {
-                            if (!stateOrCity.isEmpty()) {
+                    if (!stateOrCity.isEmpty()) {
+                        givenBooks++;
 
-                                findUserByIdCalledFrom = "filter";
-                                User findUser = new User();
-                                findUser.setIdFs(book.getUserId());
-                                usersViewModel.findUserDataByIdFs(findUser);
-
-                                if (stateOrCity.equals("city")) {
-                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                                else {
-                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                            }
-
-                            else {
-                                newLibrary.add(book);
-                            }
-
-                        }
+                        User findUser = new User();
+                        findUser.setIdFs(book.getUserId());
+                        usersViewModel.findBookWithLocation(loggedUser, stateOrCity, book);
                     }
 
-                    break;
-
-                case "Author":
-
-                    for (Book book : library) {
-                        if (book.getAuthor().contains(search)) {
-                            if (!stateOrCity.isEmpty()) {
-
-                                findUserByIdCalledFrom = "filter";
-                                User findUser = new User();
-                                findUser.setIdFs(book.getUserId());
-                                usersViewModel.findUserDataByIdFs(findUser);
-
-                                if (stateOrCity.equals("city")) {
-                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                                else {
-                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                            }
-
-                            else {
-                                newLibrary.add(book);
-                            }
-
-                        }
+                    else {
+                        newLibrary.add(book);
                     }
 
-                    break;
-
-                case "Genre":
-
-                    for (Book book : library) {
-                        if (Objects.equals(book.getGenre(), search)) {
-                            if (!stateOrCity.isEmpty()) {
-
-                                findUserByIdCalledFrom = "filter";
-                                User findUser = new User();
-                                findUser.setIdFs(book.getUserId());
-                                usersViewModel.findUserDataByIdFs(findUser);
-
-                                if (stateOrCity.equals("city")) {
-                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                                else {
-                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                            }
-
-                            else {
-                                newLibrary.add(book);
-                            }
-
-                        }
-                    }
-
-                    break;
-
-                case "Condition":
-
-                    for (Book book : library) {
-                        if (Objects.equals(book.getCondition().toString(), revertFixedEnumText(search))) {
-                            if (!stateOrCity.isEmpty()) {
-
-                                findUserByIdCalledFrom = "filter";
-                                User findUser = new User();
-                                findUser.setIdFs(book.getUserId());
-                                usersViewModel.findUserDataByIdFs(findUser);
-
-                                if (stateOrCity.equals("city")) {
-                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                                else {
-                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                            }
-
-                            else {
-                                newLibrary.add(book);
-                            }
-
-                        }
-                    }
-
-                    break;
-
-                case "Exchange":
-
-                    for (Book book : library) {
-                        if (Objects.equals(book.getExchange().toString(), revertFixedEnumText(search))) {
-                            if (!stateOrCity.isEmpty()) {
-
-                                findUserByIdCalledFrom = "filter";
-                                User findUser = new User();
-                                findUser.setIdFs(book.getUserId());
-                                usersViewModel.findUserDataByIdFs(findUser);
-
-                                if (stateOrCity.equals("city")) {
-                                    if (foundUserById.getCity().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                                else {
-                                    if (foundUserById.getState().equalsIgnoreCase(search)) {
-                                        newLibrary.add(book);
-                                    }
-                                }
-                            }
-
-                            else {
-                                newLibrary.add(book);
-                            }
-
-                        }
-                    }
-
-                    break;
+                }
             }
 
             loadingBooksDialog.dismiss();
-            libraryAdapter.setBooks(newLibrary);
 
-            if (newLibrary.isEmpty()) {
-                showDialogNoBooksAndStay();
+            if (stateOrCity.isEmpty()) {
+                libraryAdapter.setBooks(newLibrary);
 
-                booksViewModel.getAll(loggedUser);
+                if (newLibrary.isEmpty()) {
+                    showDialogNoBooksAndStay();
+
+                    loadingBooksDialog.show();
+
+                    if (currentJob.equals(jobLibrary)) {
+                        booksViewModel.getAll(loggedUser);
+                    }
+                    else {
+                        booksViewModel.getAllOtherBooks(loggedUser);
+                    }
+                }
             }
+
         }
 
         Toast.makeText(getApplicationContext(), "Searching for " + category + " " + search + " " + stateOrCity, Toast.LENGTH_SHORT).show();
@@ -853,5 +747,24 @@ public class LibraryActivity extends BaseActivity implements SearchDialog.Dialog
             chatsViewModel.addChat(chat);
         }
     }
+
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Go back Confirmation")
+                .setMessage("Are you sure you want to go back?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setResult(RESULT_OK);
+                        finish();
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
 
 }

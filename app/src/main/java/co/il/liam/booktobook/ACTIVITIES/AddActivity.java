@@ -1,5 +1,8 @@
 package co.il.liam.booktobook.ACTIVITIES;
 
+import static co.il.liam.helper.EnumHelper.revertFixedEnumText;
+import static co.il.liam.helper.EnumHelper.fixEnumText;
+import static co.il.liam.helper.GenresHelper.getAllGenres;
 import static co.il.liam.model.Book.Height;
 import static co.il.liam.model.Book.Width;
 import static co.il.liam.model.Book.Decoration;
@@ -8,6 +11,7 @@ import static co.il.liam.model.Book.Exchange;
 import static co.il.liam.model.Book.Condition;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -27,13 +31,11 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,17 +65,14 @@ import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 
 import co.il.liam.booktobook.CheckInternetConnection;
 import co.il.liam.booktobook.LargerPhotoDialog;
@@ -82,7 +81,6 @@ import co.il.liam.helper.BitMapHelper;
 import co.il.liam.model.Book;
 import co.il.liam.model.User;
 import co.il.liam.viewmodel.BooksViewModel;
-import co.il.liam.viewmodel.UsersViewModel;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class AddActivity extends BaseActivity {
@@ -223,6 +221,7 @@ public class AddActivity extends BaseActivity {
             @Override
             public void onChanged(Boolean aBoolean) {
                 pbAddWait.setVisibility(View.INVISIBLE);
+                btnAddConfirm.setClickable(true);
                 if (aBoolean) {
                     Toast.makeText(getApplicationContext(), "Added book", Toast.LENGTH_SHORT).show();
                     setResult(Activity.RESULT_OK);
@@ -316,81 +315,7 @@ public class AddActivity extends BaseActivity {
         spnAddExchange.setAdapter(statusesAdapter);
 
         //genres
-        genres.add("Other");
-        genres.add("Action & Adventure");
-        genres.add("Adventure");
-        genres.add("Anthology");
-        genres.add("Art & Photography");
-        genres.add("Biography");
-        genres.add("Business & Economics");
-        genres.add("Children's Books");
-        genres.add("Classic Literature");
-        genres.add("Coming-of-Age");
-        genres.add("Contemporary");
-        genres.add("Cookbooks");
-        genres.add("Crafts & Hobbies");
-        genres.add("Cultural");
-        genres.add("Cyberpunk");
-        genres.add("Dark Fantasy");
-        genres.add("Dystopian");
-        genres.add("Education & Teaching");
-        genres.add("Epistolary");
-        genres.add("Essays");
-        genres.add("Family Saga");
-        genres.add("Fantasy");
-        genres.add("Fiction");
-        genres.add("Game Lit");
-        genres.add("Graphic Novels");
-        genres.add("Gothic");
-        genres.add("Health & Wellness");
-        genres.add("Historical Fiction");
-        genres.add("History");
-        genres.add("Holiday");
-        genres.add("Home & Garden");
-        genres.add("Horror");
-        genres.add("Humor");
-        genres.add("Inspirational");
-        genres.add("Legal Thrillers");
-        genres.add("LGBTQ+");
-        genres.add("Magical Realism");
-        genres.add("Martial Arts");
-        genres.add("Medical Thrillers");
-        genres.add("Memoir");
-        genres.add("Music");
-        genres.add("Mystery");
-        genres.add("Nature & Environment");
-        genres.add("New Adult");
-        genres.add("Non-Fiction");
-        genres.add("Paranormal");
-        genres.add("Parenting");
-        genres.add("Poetry");
-        genres.add("Political");
-        genres.add("Political Thrillers");
-        genres.add("Psychology");
-        genres.add("Religious");
-        genres.add("Romance");
-        genres.add("Satire");
-        genres.add("Science");
-        genres.add("Science Fiction");
-        genres.add("Self-Help");
-        genres.add("Short Stories");
-        genres.add("Sociology");
-        genres.add("Space Opera");
-        genres.add("Spirituality");
-        genres.add("Sports");
-        genres.add("Steampunk");
-        genres.add("Suspense");
-        genres.add("Thriller");
-        genres.add("Time Travel");
-        genres.add("Travel");
-        genres.add("True Adventure");
-        genres.add("True Crime");
-        genres.add("Urban Fiction");
-        genres.add("War & Military");
-        genres.add("Westerns");
-        genres.add("Whodunit");
-        genres.add("Women's Fiction");
-        genres.add("Young Adult");
+        genres = getAllGenres();
 
         ArrayAdapter<String> genresAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, genres);
         genresAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
@@ -793,6 +718,7 @@ public class AddActivity extends BaseActivity {
 
                     AlertDialog dialog = builder.create();
                     dialog.show();
+                    btnAddConfirm.setClickable(false);
                 }
             }
         });
@@ -955,13 +881,14 @@ public class AddActivity extends BaseActivity {
             etAddDescription.setError("Enter the description");
             valid = false;
         }
-        else if (!addedPhoto) {
-            Toast.makeText(getApplicationContext(), "Please select a photo", Toast.LENGTH_SHORT).show();
-            valid = false;
+        else if (!Objects.equals(context, "edit")) {
+            if (!addedPhoto) {
+                valid = false;
+            }
         }
 
         if (!valid) {
-            Toast.makeText(getApplicationContext(), "Please enter all info", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Please include all book info and a photo", Toast.LENGTH_SHORT).show();
         }
 
         return valid;
@@ -988,23 +915,6 @@ public class AddActivity extends BaseActivity {
         }
     }
 
-
-    private static String fixEnumText(String s) {
-        String capitalize =  s.charAt(0) + s.substring(1).toLowerCase();
-        int underscore = capitalize.indexOf('_');
-        if (underscore != -1) {
-            return capitalize.substring(0, underscore) + " " + capitalize.substring(underscore + 1);
-        }
-        return capitalize;
-    }
-    private static String revertFixedEnumText(String s) {
-        String upper = s.toUpperCase();
-        int space = upper.indexOf(' ');
-        if (space != -1) {
-            return upper.substring(0, space) + "_" + upper.substring(space + 1);
-        }
-        return upper;
-    }
     private int getColorFromString(String s, String context) {
         // Convert the input string to lowercase for case-insensitive matching
         String lowercaseInput = s.toLowerCase();
@@ -1237,7 +1147,6 @@ public class AddActivity extends BaseActivity {
                 format = "bitmap";
                 civBookImage.setImageBitmap(imageBitmap);
                 ivAddImagePreview.setImageBitmap(imageBitmap);
-
             }
         }
 
@@ -1255,15 +1164,25 @@ public class AddActivity extends BaseActivity {
 
     }
 
-
-    public static long getFileSizeFromUri(Context context, Uri uri) {
-        Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
-        int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
-        cursor.moveToFirst();
-        long size = cursor.getLong(sizeIndex);
-        cursor.close();
-        return size;
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setTitle("Go back Confirmation")
+                .setMessage("Are you sure you want to go back?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setResult(RESULT_OK);
+                        finish();
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
-    //chatgpt has mroe here to add help
+
+
+
 }

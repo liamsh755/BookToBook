@@ -6,6 +6,10 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import java.util.List;
+
+import co.il.liam.model.Book;
+import co.il.liam.model.Books;
 import co.il.liam.model.User;
 import co.il.liam.repository.UsersRepository;
 
@@ -18,6 +22,8 @@ public class UsersViewModel extends AndroidViewModel {
     private MutableLiveData<User> userDataByIdFs;
     private MutableLiveData<Boolean> userExists;
     private MutableLiveData<Boolean> changedPassword;
+    private MutableLiveData<Book> foundLocationBook;
+    private MutableLiveData<List<String>> foundAllLocations;
 
     public UsersViewModel(Application application) {
         super(application);
@@ -29,6 +35,8 @@ public class UsersViewModel extends AndroidViewModel {
         userDataByIdFs = new MutableLiveData<>();
         userExists = new MutableLiveData<>();
         changedPassword = new MutableLiveData<>();
+        foundLocationBook = new MutableLiveData<>();
+        foundAllLocations = new MutableLiveData<>();
     }
 
     public LiveData<Boolean> getAddedUser() {
@@ -48,6 +56,12 @@ public class UsersViewModel extends AndroidViewModel {
     }
     public LiveData<Boolean> getChangedPassword() {
         return changedPassword;
+    }
+    public LiveData<Book> getFoundLocationBook() {
+        return foundLocationBook;
+    }
+    public LiveData<List<String>> getFoundAllLocations() {
+        return foundAllLocations;
     }
 
     public void add(User user) {
@@ -96,6 +110,22 @@ public class UsersViewModel extends AndroidViewModel {
                     changedPassword.setValue(aBoolean); })
                 .addOnFailureListener(aBoolean -> {
                     changedPassword.setValue(false); });
+    }
+
+    public void findBookWithLocation(User loggestUser, String stateOrCity, Book book) {
+        usersRepository.findBookWithLocation(loggestUser, stateOrCity, book)
+                .addOnSuccessListener(foundBook -> {
+                    foundLocationBook.setValue(foundBook); })
+                .addOnFailureListener(foundBook -> {
+                    foundLocationBook.setValue(null); });
+    }
+
+    public void findAllLocations() {
+        usersRepository.getLocations()
+                .addOnSuccessListener(locations -> {
+                    foundAllLocations.setValue(locations); })
+                .addOnFailureListener(locations -> {
+                    foundAllLocations.setValue(null); });
     }
 
 }

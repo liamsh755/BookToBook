@@ -7,7 +7,9 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
@@ -21,6 +23,12 @@
         android:supportsRtl="true"
         android:theme="@style/FullScreenTheme"
         tools:targetApi="31">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBNcfpqbK_smh8tAxojYn15fuguR90j4lw"
+            />
+
         <activity
             android:name=".ACTIVITIES.ChatActivity"
             android:exported="false" />

@@ -14,8 +14,12 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
+import co.il.liam.model.Book;
+import co.il.liam.model.Books;
 import co.il.liam.model.User;
 
 public class UsersRepository {
@@ -141,6 +145,65 @@ public class UsersRepository {
 
 
         return detailsRight.getTask();
+    }
+
+    public Task<Book> findBookWithLocation(User loggedUser, String stateOrCity, Book book) {
+        TaskCompletionSource<Book> foundBooks = new TaskCompletionSource<>();
+
+        String findUserIdFs = book.getUserId();
+
+        collection.whereEqualTo("idFs", findUserIdFs).get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                            DocumentSnapshot document = queryDocumentSnapshots.getDocuments().get(0);
+                            if (document != null) {
+
+                                if (Objects.equals(stateOrCity, "city")) {
+                                    String bookCity = document.getString("city");
+                                    String userCity = loggedUser.getCity();
+
+                                    if (Objects.equals(bookCity, userCity)) {
+                                        foundBooks.setResult(book);
+                                    }
+                                    else {
+                                        foundBooks.setResult(null);
+                                    }
+
+                                }
+                                else {
+                                    String bookState = document.getString("state");
+                                    String userState = loggedUser.getState();
+
+                                    if (Objects.equals(bookState, userState)) {
+                                        foundBooks.setResult(book);
+                                    }
+                                    else {
+                                        foundBooks.setResult(null);
+                                    }
+                                }
+                            }
+
+                            else {
+                                foundBooks.setResult(null);
+                            }
+                        }
+
+                        else {
+                            foundBooks.setResult(null);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        foundBooks.setResult(null);
+                    }
+                });
+
+
+        return foundBooks.getTask();
     }
 
     public Task<User> getUserDataByEmail(User user) {
@@ -278,6 +341,45 @@ public class UsersRepository {
                 });
 
         return changedPassword.getTask();
+    }
+
+    public Task<List<String>> getLocations() {
+        TaskCompletionSource<List<String>> locations = new TaskCompletionSource<>();
+
+        collection.whereEqualTo("state", "Israel").get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                    @Override
+                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                        if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+
+                            List<String> foundLocations = new ArrayList<>();
+
+                            for (DocumentSnapshot document : queryDocumentSnapshots) {
+                                User user = document.toObject(User.class);
+                                if (user != null) {
+                                    String state = user.getState();
+                                    String city = user.getCity();
+
+                                    String location = state + " - " + city;
+                                    foundLocations.add(location);
+                                }
+                            }
+
+                            locations.setResult(foundLocations);
+                        }
+                        else {
+                            locations.setResult(null);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        locations.setResult(null);
+                    }
+                });
+
+        return locations.getTask();
     }
 
 }

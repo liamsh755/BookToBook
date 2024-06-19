@@ -153,7 +153,7 @@ public class BooksRepository {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Book book = document.toObject(Book.class);
                         Log.d("qqq", "found book: " + book.getExchange().toString() + ", " + book.getCondition().toString());
-                        if (book != null && !book.getExchange().toString().equals("FOR_DISPLAY")) {
+                        if (book != null) {
                             TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
                             storageTasks.add(taskCompletionSource.getTask());
 
